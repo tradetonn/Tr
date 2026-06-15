@@ -632,9 +632,10 @@ function copyMemoId(){
 }
 
 // ИСПРАВЛЕННАЯ функция doDeposit - без автоматического начисления
+// ИСПРАВЛЕННАЯ функция doDeposit - с минимальной суммой 10 TON
 async function doDeposit(){
   const amt = parseFloat(document.getElementById('depositAmt').value);
-  if(!amt || amt <= 0){ showToast(i18n.t('toast_enter_amount')); return; }
+  if(!amt || amt < 10){ showToast('Минимальная сумма пополнения 10 TON'); return; }
   try {
     const data = await apiPost('/api/wallet/deposit', { amount: amt });
     // НЕ обновляем баланс здесь! Баланс обновится только после одобрения админом
@@ -651,7 +652,7 @@ async function doDeposit(){
 async function doWithdraw(){
   const amt  = parseFloat(document.getElementById('withdrawAmt').value);
   const addr = document.getElementById('withdrawAddr').value.trim();
-  if(!amt || amt <= 0){ showToast(i18n.t('toast_enter_amount')); return; }
+  if(!amt || amt < 10){ showToast('Минимальная сумма вывода 10 TON'); return; }
   if(!addr){ showToast(i18n.t('toast_enter_address')); return; }
   try {
     const data = await apiPost('/api/wallet/withdraw', { amount: amt, toAddress: addr });

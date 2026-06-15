@@ -65,7 +65,7 @@
   <div class="header-right">
     <div class="bal-pill">
       <div class="balance-label" data-i18n="balance">Баланс</div>
-      <div class="balance-val" id="balanceEl">2 841.50 TON</div>
+      <div class="balance-val" id="balanceEl">0.00 TON</div>
     </div>
     <div class="avatar" id="avatarEl">А</div>
   </div>
@@ -85,7 +85,7 @@
       <div class="bot-head">
         <div class="bot-icon basic"><svg viewBox="0 0 24 24" fill="none" stroke="#7B7FF8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 2v4"/><circle cx="12" cy="6" r="1"/><path d="M8 15h.01M12 15h.01M16 15h.01"/><path d="M6 11V9a6 6 0 0 1 12 0v2"/></svg></div>
         <div><div class="bot-name">Scout Bot</div><div class="bot-tier tier-basic">BASIC</div></div>
-        <div class="bot-badge"><div class="yield-val" id="yld-basic">+3.5–4.8%</div><div class="yield-lbl" id="ylbl-basic">за 7 дней</div></div>
+        <div class="bot-badge"><div class="yield-val" id="yld-basic">+3.5–5.5%</div><div class="yield-lbl" id="ylbl-basic">за 7 дней</div></div>
       </div>
       <div class="bot-body">
         <div class="bot-pairs" data-bot="basic">
@@ -107,7 +107,7 @@
       <div class="bot-head">
         <div class="bot-icon pro"><svg viewBox="0 0 24 24" fill="none" stroke="#39D98A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
         <div><div class="bot-name">Alpha Bot</div><div class="bot-tier tier-pro">PRO</div></div>
-        <div class="bot-badge"><div class="yield-val" style="color:var(--green)" id="yld-pro">+4.2–6.1%</div><div class="yield-lbl" id="ylbl-pro">за 7 дней</div></div>
+        <div class="bot-badge"><div class="yield-val" style="color:var(--green)" id="yld-pro">+4.5–7.5%</div><div class="yield-lbl" id="ylbl-pro">за 7 дней</div></div>
       </div>
       <div class="bot-body">
         <div class="bot-pairs" data-bot="pro">
@@ -130,7 +130,7 @@
       <div class="bot-head">
         <div class="bot-icon elite"><svg viewBox="0 0 24 24" fill="none" stroke="#F6465D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
         <div><div class="bot-name">Quantum Bot</div><div class="bot-tier tier-elite">ELITE</div></div>
-        <div class="bot-badge"><div class="yield-val" style="color:var(--green)" id="yld-elite">+5.0–8.0%</div><div class="yield-lbl" id="ylbl-elite">за 7 дней</div></div>
+        <div class="bot-badge"><div class="yield-val" style="color:var(--green)" id="yld-elite">+6.0–10.0%</div><div class="yield-lbl" id="ylbl-elite">за 7 дней</div></div>
       </div>
       <div class="bot-body">
         <div class="bot-pairs" data-bot="elite">
@@ -295,8 +295,8 @@
   <div class="page" id="page-wallet">
     <div class="wallet-hero">
       <div class="wh-lbl" data-i18n="wallet_balance">Баланс кошелька</div>
-      <div class="wh-bal" id="walletBal">2 841.50 TON</div>
-      <div class="wh-addr">UQBx9k2...d4Kp</div>
+      <div class="wh-bal" id="walletBal">0.00 TON</div>
+      <div class="wh-addr">UQA-5HlUPcwNOpJ5...XT0gF</div>
       <div class="wallet-act-row">
         <button class="wact-btn wact-in" onclick="openWalletModal('deposit')">
           <div class="wact-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12l10 10 10-10"/></svg></div>
@@ -320,7 +320,7 @@
     <div class="wallet-summary">
       <div class="ws-item">
         <div class="ws-lbl" data-i18n="wallet_available">Доступно</div>
-        <div class="ws-val green" id="wAvail">2 841.50 TON</div>
+        <div class="ws-val green" id="wAvail">0.00 TON</div>
       </div>
       <div class="ws-div"></div>
       <div class="ws-item">
@@ -366,7 +366,7 @@
         <div id="wDepositView">
           <div class="wm-address-box">
             <div class="wm-addr-lbl" data-i18n="deposit_addr_lbl">Ваш TON-адрес</div>
-            <div class="wm-addr-val" id="wDepositAddr">UQBx9k2mF...d4Kp</div>
+            <div class="wm-addr-val" id="wDepositAddr">UQA-5HlUPcwNOpJ5kjKCq4FZclYn4ns8nY27Izi_V9uXT0gF</div>
             <button class="wm-copy-btn" onclick="copyWalletAddr()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               <span data-i18n="deposit_copy_addr">Копировать</span>
@@ -393,7 +393,7 @@
           <div class="wm-amount-row">
             <div class="wm-lbl" data-i18n="deposit_amount_lbl">Сумма пополнения</div>
             <div class="wm-input-wrap">
-              <input class="wm-input" type="number" id="depositAmt" placeholder="0.00" min="0.1" step="0.1">
+              <input class="wm-input" type="number" id="depositAmt" placeholder="0.00" min="10" step="1">
               <span class="wm-currency">TON</span>
             </div>
           </div>
@@ -404,7 +404,7 @@
           <div class="wm-balance-hint"><span data-i18n="withdraw_avail_lbl">Доступно:</span> <span id="wDrawAvail" style="color:var(--green);font-weight:700">—</span></div>
           <div class="wm-lbl" style="margin-bottom:6px" data-i18n="withdraw_amount">Сумма вывода</div>
           <div class="wm-input-wrap" style="margin-bottom:10px">
-            <input class="wm-input" type="number" id="withdrawAmt" placeholder="0.00" min="0.1" step="0.1">
+            <input class="wm-input" type="number" id="withdrawAmt" placeholder="0.00" min="10" step="1">
             <span class="wm-currency">TON</span>
           </div>
           <div class="wm-lbl" style="margin-bottom:6px" data-i18n="withdraw_addr">TON-адрес получателя</div>
