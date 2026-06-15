@@ -8,17 +8,15 @@ const TelegramBot = require('node-telegram-bot-api');
 const app  = express();
 const PORT          = process.env.PORT || 3000;
 const ADMIN_CHAT_ID  = process.env.ADMIN_CHAT_ID;
-const BOT_TOKEN      = process.env.TELEGRAM_BOT_TOKEN;
-const APP_URL        = (process.env.APP_URL || '').replace(/\/+$/, '');
-const FRONTEND_URL   = process.env.FRONTEND_URL || 'https://alexandr1one.github.io/TradeTon';
-const BOT_USERNAME   = 'TradeTonnBot';
+const BOT_TOKEN      = '8985217513:AAGOOfxAypZ-d6VlFf7bjGvxFWtwQX5MsYQ';
+const APP_URL        = (process.env.APP_URL || 'https://tradeton-production-6d7e.up.railway.app').replace(/\/+$/, '');
+const FRONTEND_URL   = 'https://tradetonn.github.io/Tr';
+const BOT_USERNAME   = 'Tradeetonbot';
 const REFERRAL_PCT   = 5;
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
 // Временное хранилище реф.кодов: telegramId → referralCode
-// Сохраняется когда новый юзер кликает /start refCode
-// Читается при первом открытии Mini App
 const pendingReferrals = new Map();
 
 // ═══════════════════════════════════════════════════════════════
@@ -216,12 +214,11 @@ async function auth(req, res, next) {
     // PROD: Authorization: tma <initData>
     if (!h.startsWith('tma ')) return res.status(401).json({ error: 'Authorization required' });
 
-    const tgUser = verifyTelegramData(h.slice(4), process.env.TELEGRAM_BOT_TOKEN);
+    const tgUser = verifyTelegramData(h.slice(4), BOT_TOKEN);
     if (!tgUser)  return res.status(401).json({ error: 'Invalid Telegram data' });
 
     let user = await User.findOne({ telegramId: tgUser.id });
     if (!user) {
-      // Check pendingReferrals — saved when user clicked /start refCode in bot
       let referrer = null;
       const pendingRef = pendingReferrals.get(String(tgUser.id));
       if (pendingRef) {
@@ -236,10 +233,9 @@ async function auth(req, res, next) {
         referredBy: referrer?._id || null,
       });
       await user.save();
-      // Notify referrer
       if (referrer) {
         tgSend(referrer.telegramId,
-          `👤 Ваш друг <b>${tgUser.first_name||'Пользователь'}</b> присоединился к TradeTON по вашей ссылке!\n` +
+          `👤 Ваш друг <b>${tgUser.first_name||'Пользователь'}</b> присоединился к TradeEton по вашей ссылке!\n` +
           `Вы будете получать <b>${REFERRAL_PCT}%</b> от его дохода автоматически.`
         );
       }
@@ -261,21 +257,35 @@ async function auth(req, res, next) {
 // ROUTES
 // ═══════════════════════════════════════════════════════════════
 
-// Health (no auth)
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    name: 'TradeEton API',
+    endpoints: ['/health', '/api/me', '/api/bots/:id', '/api/bots/start', '/api/bots/:id/claim', '/api/wallet/deposit', '/api/wallet/withdraw', '/api/leaderboard', '/api/transactions', '/api/referrals', '/webhook']
+  });
+});
 
-// ── Telegram helpers ─────────────────────────────────────────────
+// Health
+app.get('/health', (req, res) => res.json({
+  status: 'ok',
+  time:   new Date().toISOString(),
+  db:     mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+}));
+
 async function tgSend(chatId, text, opts = {}) {
   if (!chatId || !BOT_TOKEN) return null;
   try { return await bot.sendMessage(chatId, text, { parse_mode: 'HTML', ...opts }); }
   catch (e) { console.error('[bot.send]', e.message); return null; }
 }
+
 async function tgEdit(chatId, msgId, text, opts = {}) {
   if (!chatId || !msgId) return;
   try { await bot.editMessageText(text, { chat_id: chatId, message_id: msgId, parse_mode: 'HTML', ...opts }); }
   catch (e) { console.error('[bot.edit]', e.message); }
 }
 
-// ── Request model ────────────────────────────────────────────────
+// Request model
 const RequestSchema = new mongoose.Schema({
   userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   txId:       { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction', default: null },
@@ -304,20 +314,18 @@ async function notifyAdmin(request, user) {
   return msg?.message_id || null;
 }
 
-// ── /webhook: /start + buttons ───────────────────────────────────
+// Webhook
 app.post('/webhook', async (req, res) => {
   res.sendStatus(200);
   try {
     const update = req.body;
 
-    // /start command
     if (update.message?.text?.startsWith('/start')) {
       const msg      = update.message;
       const chatId   = msg.chat.id;
       const name     = msg.from?.first_name || 'Трейдер';
       const refCode  = msg.text.split(' ')[1] || '';
 
-      // Save referral code so auth middleware picks it up when user opens Mini App
       if (refCode && refCode !== '') {
         pendingReferrals.set(String(chatId), refCode);
         console.log(`[ref] Saved pending referral: ${chatId} → ${refCode}`);
@@ -325,7 +333,7 @@ app.post('/webhook', async (req, res) => {
 
       const text =
         `👋 Привет, <b>${name}</b>!\n\n` +
-        `⚡ <b>TradeTON</b> — торговые боты на TON.\n\n` +
+        `⚡ <b>TradeEton</b> — торговые боты на TON.\n\n` +
         `🤖 <b>Как работает:</b>\n` +
         `• Запускаешь бота — он торгует за тебя\n` +
         `• Зарабатываешь <b>3–10%</b> сверх вложенного\n` +
@@ -334,14 +342,13 @@ app.post('/webhook', async (req, res) => {
         `💎 Минимальный вход: <b>29 TON</b>`;
 
       await tgSend(chatId, text, { reply_markup: { inline_keyboard: [[
-        { text: '🚀 Открыть TradeTON', web_app: { url: FRONTEND_URL } },
+        { text: '🚀 Открыть TradeEton', web_app: { url: FRONTEND_URL } },
       ],[
         { text: '📖 Как пополнить?', callback_data: 'how_deposit' },
       ]]}});
       return;
     }
 
-    // Callback buttons
     if (update.callback_query) {
       const cb      = update.callback_query;
       const chatId  = cb.message?.chat?.id;
@@ -349,7 +356,6 @@ app.post('/webhook', async (req, res) => {
       const origTxt = cb.message?.text || '';
       await bot.answerCallbackQuery(cb.id).catch(() => {});
 
-      // Info button
       if (cb.data === 'how_deposit') {
         await tgSend(chatId,
           `💰 <b>Как пополнить баланс:</b>\n\n` +
@@ -359,13 +365,12 @@ app.post('/webhook', async (req, res) => {
           `4. Отправь TON и нажми "Отправить заявку"\n\n` +
           `⏱ Зачисление после подтверждения администратором`,
           { reply_markup: { inline_keyboard: [[
-            { text: '🚀 Открыть TradeTON', web_app: { url: FRONTEND_URL } },
+            { text: '🚀 Открыть TradeEton', web_app: { url: FRONTEND_URL } },
           ]]}}
         );
         return;
       }
 
-      // Admin approve/reject — only admin
       if (String(chatId) !== String(ADMIN_CHAT_ID)) return;
 
       const parts  = (cb.data || '').split('_');
@@ -402,13 +407,7 @@ app.post('/webhook', async (req, res) => {
   } catch (e) { console.error('[webhook]', e.message); }
 });
 
-app.get('/health', (req, res) => res.json({
-  status: 'ok',
-  time:   new Date().toISOString(),
-  db:     mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-}));
-
-// ── GET /api/me ─────────────────────────────────────────────────
+// GET /api/me
 app.get('/api/me', auth, async (req, res) => {
   try {
     const [bots, txs, refCount] = await Promise.all([
@@ -437,8 +436,7 @@ app.get('/api/me', auth, async (req, res) => {
   }
 });
 
-// ── GET /api/bots/:id ───────────────────────────────────────────
-// Poll this every 30s from the client for live updates
+// GET /api/bots/:id
 app.get('/api/bots/:id', auth, async (req, res) => {
   try {
     const bot = await Bot.findOne({ _id: req.params.id, userId: req.user._id });
@@ -449,7 +447,7 @@ app.get('/api/bots/:id', auth, async (req, res) => {
   }
 });
 
-// ── POST /api/bots/start ────────────────────────────────────────
+// POST /api/bots/start
 app.post('/api/bots/start', auth, async (req, res) => {
   try {
     const { tier, pair } = req.body;
@@ -461,7 +459,6 @@ app.post('/api/bots/start', auth, async (req, res) => {
 
     const price = PRICES[tier][days];
 
-    // Atomic deduction — safe against double taps
     const updated = await User.findOneAndUpdate(
       { _id: req.user._id, balance: { $gte: price } },
       { $inc: { balance: -price } },
@@ -471,10 +468,9 @@ app.post('/api/bots/start', auth, async (req, res) => {
 
     const actualPct    = rollPct(tier, days);
     const targetProfit = price * actualPct / 100;
-    const totalTicks   = days * 24 * 60;     // 1 tick per real minute → 7d = 10080 ticks
-    const TICK_MS      = 60000;              // 1 tick = 1 real minute
+    const totalTicks   = days * 24 * 60;
     const startedAt    = new Date();
-    const endsAt       = new Date(+startedAt + days * 86400000); // real calendar days
+    const endsAt       = new Date(+startedAt + days * 86400000);
 
     const bot = await Bot.create({
       userId: req.user._id,
@@ -498,7 +494,7 @@ app.post('/api/bots/start', auth, async (req, res) => {
   }
 });
 
-// ── POST /api/bots/:id/claim ────────────────────────────────────
+// POST /api/bots/:id/claim
 app.post('/api/bots/:id/claim', auth, async (req, res) => {
   try {
     const bot = await Bot.findOne({ _id: req.params.id, userId: req.user._id });
@@ -519,7 +515,6 @@ app.post('/api/bots/:id/claim', auth, async (req, res) => {
       meta: { botId: bot._id, tier: bot.tier, pair: bot.pair, earned: +earned.toFixed(6) },
     });
 
-    // Referral reward — 5% to referrer
     if (earned > 0 && req.user.referredBy) {
       const referrer = await User.findById(req.user.referredBy);
       if (referrer) {
@@ -530,17 +525,12 @@ app.post('/api/bots/:id/claim', auth, async (req, res) => {
           meta: { fromUser: req.user.telegramId, fromName: req.user.firstName, botName: bot.name },
         });
         if (BOT_TOKEN) tgSend(referrer.telegramId,
-          `💸 Реферальный доход!
-👤 ${req.user.firstName||'Пользователь'} забрал доход с бота
-💰 Ваш бонус: <b>+${reward.toFixed(4)} TON</b>`);
+          `💸 Реферальный доход!\n👤 ${req.user.firstName||'Пользователь'} забрал доход с бота\n💰 Ваш бонус: <b>+${reward.toFixed(4)} TON</b>`);
       }
     }
 
     if (BOT_TOKEN) tgSend(req.user.telegramId,
-      `✅ Доход получен!
-🤖 ${bot.name} · ${bot.pair}
-💰 Заработано: <b>+${earned.toFixed(4)} TON</b>
-💎 На баланс: <b>${payout.toFixed(4)} TON</b>`);
+      `✅ Доход получен!\n🤖 ${bot.name} · ${bot.pair}\n💰 Заработано: <b>+${earned.toFixed(4)} TON</b>\n💎 На баланс: <b>${payout.toFixed(4)} TON</b>`);
 
     res.json({ payout: +payout.toFixed(4), balance: user.balance });
   } catch (e) {
@@ -549,7 +539,7 @@ app.post('/api/bots/:id/claim', auth, async (req, res) => {
   }
 });
 
-// ── POST /api/wallet/deposit ────────────────────────────────────
+// POST /api/wallet/deposit
 app.post('/api/wallet/deposit', auth, async (req, res) => {
   try {
     const amt = parseFloat(req.body.amount);
@@ -572,11 +562,7 @@ app.post('/api/wallet/deposit', auth, async (req, res) => {
     if (msgId) await Request.findByIdAndUpdate(request._id, { adminMsgId: msgId });
     
     tgSend(req.user.telegramId, 
-      `📨 <b>Заявка на пополнение</b>\n` +
-      `Сумма: <b>${amt} TON</b>\n` +
-      `Memo: <code>${memo}</code>\n\n` +
-      `⏳ Статус: <i>Ожидает подтверждения администратора</i>\n\n` +
-      `❗ Убедитесь, что вы указали верный MEMO в комментарии к переводу.`
+      `📨 <b>Заявка на пополнение</b>\nСумма: <b>${amt} TON</b>\nMemo: <code>${memo}</code>\n\n⏳ Статус: <i>Ожидает подтверждения администратора</i>\n\n❗ Убедитесь, что вы указали верный MEMO в комментарии к переводу.`
     );
     
     res.json({ status: 'pending', tx: formatTx(tx), balance: req.user.balance });
@@ -586,7 +572,7 @@ app.post('/api/wallet/deposit', auth, async (req, res) => {
   }
 });
 
-// ── POST /api/wallet/withdraw ───────────────────────────────────
+// POST /api/wallet/withdraw
 app.post('/api/wallet/withdraw', auth, async (req, res) => {
   try {
     const amt  = parseFloat(req.body.amount);
@@ -595,7 +581,6 @@ app.post('/api/wallet/withdraw', auth, async (req, res) => {
     if (!amt || amt <= 0)  return res.status(400).json({ error: 'Invalid amount' });
     if (!addr)             return res.status(400).json({ error: 'Address required' });
 
-    // Атомарно резервируем сумму
     const updated = await User.findOneAndUpdate(
       { _id: req.user._id, balance: { $gte: amt } },
       { $inc: { balance: -amt } },
@@ -618,14 +603,7 @@ app.post('/api/wallet/withdraw', auth, async (req, res) => {
     if (msgId) await Request.findByIdAndUpdate(request._id, { adminMsgId: msgId });
 
     tgSend(req.user.telegramId,
-      `📤 <b>Заявка на вывод</b>
-` +
-      `Сумма: <b>${amt} TON</b>
-` +
-      `Адрес: <code>${addr}</code>
-
-` +
-      `⏳ Статус: <i>Ожидает подтверждения администратора</i>`
+      `📤 <b>Заявка на вывод</b>\nСумма: <b>${amt} TON</b>\nАдрес: <code>${addr}</code>\n\n⏳ Статус: <i>Ожидает подтверждения администратора</i>`
     );
 
     res.json({ status: 'pending', tx: formatTx(tx), balance: updated.balance });
@@ -635,7 +613,7 @@ app.post('/api/wallet/withdraw', auth, async (req, res) => {
   }
 });
 
-// ── GET /api/leaderboard ────────────────────────────────────────
+// GET /api/leaderboard
 app.get('/api/leaderboard', auth, async (req, res) => {
   try {
     const [leaders, myRankCount] = await Promise.all([
@@ -657,7 +635,7 @@ app.get('/api/leaderboard', auth, async (req, res) => {
   }
 });
 
-// ── GET /api/transactions ───────────────────────────────────────
+// GET /api/transactions
 app.get('/api/transactions', auth, async (req, res) => {
   try {
     const txs = await Transaction.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(50);
@@ -667,8 +645,7 @@ app.get('/api/transactions', auth, async (req, res) => {
   }
 });
 
-// 404
-// ── GET /api/referrals ──────────────────────────────────────────
+// GET /api/referrals
 app.get('/api/referrals', auth, async (req, res) => {
   try {
     const [refs, earnings] = await Promise.all([
@@ -697,7 +674,6 @@ function adminAuth(req, res, next) {
   const h = req.headers['x-admin-key'] || '';
   const [l, p] = h.split(':');
   if (l === ADMIN_LOGIN_VAL && p === ADMIN_PASSWORD_VAL) return next();
-  // Also support Basic auth
   const basic = req.headers.authorization || '';
   if (basic.startsWith('Basic ')) {
     const decoded = Buffer.from(basic.slice(6), 'base64').toString();
@@ -707,7 +683,6 @@ function adminAuth(req, res, next) {
   return res.status(401).json({ error: 'Unauthorized' });
 }
 
-// ── GET /api/admin/stats ────────────────────────────────────────
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
   try {
     const [totalUsers, totalBots, pendingCount] = await Promise.all([
@@ -727,7 +702,6 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET /api/admin/users ────────────────────────────────────────
 app.get('/api/admin/users', adminAuth, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 500;
@@ -739,7 +713,6 @@ app.get('/api/admin/users', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET /api/admin/users/:id ────────────────────────────────────
 app.get('/api/admin/users/:id', adminAuth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -760,7 +733,6 @@ app.get('/api/admin/users/:id', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── POST /api/admin/users/:id/balance ──────────────────────────
 app.post('/api/admin/users/:id/balance', adminAuth, async (req, res) => {
   try {
     const delta = parseFloat(req.body.delta);
@@ -786,7 +758,6 @@ app.post('/api/admin/users/:id/balance', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── DELETE /api/admin/users/:id ─────────────────────────────────
 app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -804,7 +775,6 @@ app.delete('/api/admin/users/:id', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── GET /api/admin/requests ─────────────────────────────────────
 app.get('/api/admin/requests', adminAuth, async (req, res) => {
   try {
     const requests = await Request.find()
@@ -829,7 +799,6 @@ app.get('/api/admin/requests', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── POST /api/admin/requests/:id/approve ───────────────────────
 app.post('/api/admin/requests/:id/approve', adminAuth, async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
@@ -857,7 +826,6 @@ app.post('/api/admin/requests/:id/approve', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── POST /api/admin/requests/:id/reject ────────────────────────
 app.post('/api/admin/requests/:id/reject', adminAuth, async (req, res) => {
   try {
     const request = await Request.findById(req.params.id);
@@ -883,7 +851,6 @@ app.post('/api/admin/requests/:id/reject', adminAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── POST /api/admin/broadcast ───────────────────────────────────
 app.post('/api/admin/broadcast', adminAuth, async (req, res) => {
   try {
     const { text, target } = req.body;
@@ -912,7 +879,7 @@ app.post('/api/admin/broadcast', adminAuth, async (req, res) => {
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
 // ═══════════════════════════════════════════════════════════════
-// WORKER  — offline-safe, catches up all missed ticks on start
+// WORKER
 // ═══════════════════════════════════════════════════════════════
 
 function simulateTick(bot) {
@@ -935,7 +902,7 @@ function simulateTick(bot) {
 
 async function processBotTicks(bot) {
   const now     = new Date();
-  const TICK_MS = 60000; // 1 real minute = 1 tick (totalTicks stays days*24, profit same)
+  const TICK_MS = 60000;
 
   const from       = bot.lastTickAt ? new Date(bot.lastTickAt) : new Date(bot.startedAt);
   const ticksDue   = Math.max(0, Math.floor((now - from) / TICK_MS));
@@ -954,7 +921,6 @@ async function processBotTicks(bot) {
     const pnl       = simulateTick(bot);
     const tradeTime = new Date(+from + (i + 1) * TICK_MS);
 
-    // Close open trade
     const idx = bot.trades.findIndex(t => t.type === 'open');
     if (idx !== -1) {
       bot.trades[idx].type     = 'closed';
@@ -963,13 +929,11 @@ async function processBotTicks(bot) {
     }
     earned += pnl;
 
-    // Open next unless last tick
     if ((bot.ticksDone + i + 1) < bot.totalTicks) {
       bot.trades.push({ type: 'open', pair: bot.pair, openedAt: tradeTime });
     }
   }
 
-  // Keep last 20 trades only
   if (bot.trades.length > 20) bot.trades = bot.trades.slice(-20);
 
   bot.earned    += earned;
