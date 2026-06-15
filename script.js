@@ -79,7 +79,7 @@ function renderTasks() {
 // API CLIENT
 // ═══════════════════════════════════════════════════════════════
 
-const API = 'https://tradeton-production-6d7e.up.railway.app';
+const API = 'https://tr-production-d035.up.railway.app';
 
 function getAuthHeader() {
   const initData = window.Telegram?.WebApp?.initData || '';
