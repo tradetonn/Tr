@@ -317,28 +317,44 @@
       <button onclick="openLangModal()" style="background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent2);border-radius:var(--r2);padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" data-i18n="lang_change">Изменить</button>
     </div>
 
-    <div class="wallet-summary">
-      <div class="ws-item">
-        <div class="ws-lbl" data-i18n="wallet_available">Доступно</div>
-        <div class="ws-val green" id="wAvail">2 841.50 TON</div>
-      </div>
-      <div class="ws-div"></div>
-      <div class="ws-item">
-        <div class="ws-lbl" data-i18n="wallet_in_bots">В ботах</div>
-        <div class="ws-val" id="wInBots">0 TON</div>
-      </div>
-      <div class="ws-div"></div>
-      <div class="ws-item">
-        <div class="ws-lbl" data-i18n="wallet_monthly">Доход за месяц</div>
-        <div class="ws-val green" id="wMonthly">+0 TON</div>
-      </div>
-    </div>
-
-    <div class="sec-title" data-i18n="wallet_history">История</div>
-    <div class="wallet-tx-wrap" id="txList">
-      <div style="padding:24px;text-align:center;color:var(--text3);font-size:13px" data-i18n="wallet_no_tx">Транзакций пока нет</div>
-    </div>
+<div class="wallet-summary">
+  <div class="ws-item">
+    <div class="ws-lbl" data-i18n="wallet_available">Доступно</div>
+    <div class="ws-val green" id="wAvail">2 841.50 TON</div>
   </div>
+  <div class="ws-div"></div>
+  <div class="ws-item">
+    <div class="ws-lbl" data-i18n="wallet_in_bots">В ботах</div>
+    <div class="ws-val" id="wInBots">0 TON</div>
+  </div>
+  <div class="ws-div"></div>
+  <div class="ws-item">
+    <div class="ws-lbl" data-i18n="wallet_monthly">Доход за месяц</div>
+    <div class="ws-val green" id="wMonthly">+0 TON</div>
+  </div>
+</div>
+
+<!-- ⬇️⬇️⬇️ ВСТАВИТЬ СЮДА ⬇️⬇️⬇️ -->
+<div class="card" style="margin-bottom:10px;padding:14px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+    <span style="font-size:18px">🎁</span>
+    <span style="font-size:14px;font-weight:700" data-i18n="promo_title">Промокод</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    <input type="text" id="promoInput" placeholder="XXXX-XXXX" 
+      style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:var(--r2);padding:12px;font-size:14px;color:var(--text);outline:none;font-family:inherit">
+    <button onclick="activatePromo()" 
+      style="background:linear-gradient(135deg,#5B5FEE,#7B7FF8);border:none;border-radius:var(--r2);padding:0 20px;font-size:13px;font-weight:700;color:#fff;cursor:pointer">
+      <span data-i18n="promo_activate">Активировать</span>
+    </button>
+  </div>
+  <div id="promoMessage" style="font-size:11px;color:var(--text3);margin-top:8px"></div>
+</div>
+<!-- ⬆️⬆️⬆️ ДО СЮДА ⬆️⬆️⬆️ -->
+
+<div class="sec-title" data-i18n="wallet_history">История</div>
+<div class="wallet-tx-wrap" id="txList">
+  <div style="padding:24px;text-align:center;color:var(--text3);font-size:13px" data-i18n="wallet_no_tx">Транзакций пока нет</div>
 </div>
 
 <!-- MODAL: Deposit/Withdraw -->
