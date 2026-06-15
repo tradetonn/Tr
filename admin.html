@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TradeTON Admin</title>
+<style>
+  :root {
+    --bg: #0a0d14;
+    --bg2: #111520;
+    --bg3: #161b28;
+    --card: #1a2035;
+    --border: #252d42;
+    --accent: #3b82f6;
+    --accent2: #6366f1;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --muted2: #4b5563;
+    --nav-h: 64px;
+    --header-h: 52px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ── LOGIN ── */
+  #loginScreen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 0; z-index: 1000;
+  }
+  .login-box {
+    width: min(360px, 92vw);
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px 28px; display: flex; flex-direction: column; gap: 20px;
+  }
+  .login-logo { text-align: center; margin-bottom: 4px; }
+  .login-logo .logo-icon {
+    width: 56px; height: 56px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 12px;
+  }
+  .login-logo h1 { font-size: 20px; font-weight: 700; color: var(--text); }
+  .login-logo p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .login-field { display: flex; flex-direction: column; gap: 6px; }
+  .login-field label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: .04em; }
+  .login-field input {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; font-size: 15px; color: var(--text); outline: none; width: 100%;
+    transition: border-color .2s;
+  }
+  .login-field input:focus { border-color: var(--accent); }
+  .login-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600;
+    color: #fff; cursor: pointer; width: 100%; transition: opacity .15s;
+  }
+  .login-btn:active { opacity: .8; }
+  .login-err { font-size: 13px; color: var(--red); text-align: center; display: none; }
+
+  /* ── APP ── */
+  #app { display: none; height: 100%; flex-direction: column; }
+  #app.visible { display: flex; }
+
+  .header {
+    height: var(--header-h); background: var(--bg2); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+    flex-shrink: 0;
+  }
+  .header-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .header-right { display: flex; gap: 8px; align-items: center; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+  .logout-btn {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 10px; font-size: 12px; color: var(--muted); cursor: pointer;
+  }
+
+  .content {
+    flex: 1; overflow-y: auto; padding: 12px 12px 8px;
+    padding-bottom: calc(var(--nav-h) + 8px);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── NAV ── */
+  .nav {
+    height: var(--nav-h); background: var(--bg2); border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: repeat(5, 1fr); flex-shrink: 0;
+    position: sticky; bottom: 0;
+  }
+  .nav-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 10px; font-weight: 500; transition: color .15s; padding: 0;
+    position: relative;
+  }
+  .nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn.active .nav-icon { transform: scale(1.08); }
+  .badge {
+    position: absolute; top: 6px; right: calc(50% - 16px);
+    background: var(--red); color: #fff; font-size: 9px; font-weight: 700;
+    padding: 1px 4px; border-radius: 8px; min-width: 16px; text-align: center;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px; margin-bottom: 10px;
+  }
+  .card-title { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+  
+  /* ── STAT GRID ── */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 12px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.blue { color: var(--accent); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* ── ERRORS ── */
+  .error-item {
+    background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25);
+    border-radius: 12px; padding: 12px; margin-bottom: 8px;
+  }
+  .error-code { font-size: 11px; font-weight: 700; color: var(--red); margin-bottom: 3px; }
+  .error-msg { font-size: 13px; color: var(--text); margin-bottom: 4px; word-break: break-all; }
+  .error-time { font-size: 10px; color: var(--muted); }
+
+  /* ── LOG ITEMS ── */
+  .log-item {
+    padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-start;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-level {
+    font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; flex-shrink: 0; margin-top: 1px;
+  }
+  .log-level.INFO { background: rgba(59,130,246,.2); color: var(--accent); }
+  .log-level.WARN { background: rgba(245,158,11,.2); color: var(--yellow); }
+  .log-level.ERR  { background: rgba(239,68,68,.2); color: var(--red); }
+  .log-text { font-size: 12px; color: var(--text); word-break: break-all; flex: 1; font-family: 'SF Mono', monospace; }
+  .log-time { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+
+  /* ── SEARCH ── */
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-wrap input {
+    width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 14px 10px 36px; font-size: 14px; color: var(--text); outline: none;
+    transition: border-color .2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+
+  /* ── USER CARD ── */
+  .user-list-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s;
+  }
+  .user-list-item:active { border-color: var(--accent); }
+  .user-list-top { display: flex; align-items: center; gap: 10px; }
+  .user-avatar {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-id { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .user-balance { font-size: 15px; font-weight: 700; color: var(--green); }
+
+  /* ── USER DETAIL ── */
+  #userDetail { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; }
+  #userDetail.open { display: flex; }
+  .detail-header {
+    height: var(--header-h); background: var(--bg2); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; padding: 0 16px; flex-shrink: 0;
+  }
+  .back-btn {
+    background: none; border: none; color: var(--accent); font-size: 15px; cursor: pointer; padding: 6px 0;
+  }
+  .detail-body { flex: 1; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
+
+  .info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { font-size: 12px; color: var(--muted); }
+  .info-val { font-size: 13px; color: var(--text); font-weight: 500; text-align: right; max-width: 60%; word-break: break-all; }
+
+  .bot-item {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 6px;
+  }
+  .bot-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .bot-item-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .bot-badge {
+    display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px;
+    border-radius: 6px; margin-left: 6px; vertical-align: middle;
+  }
+  .bot-badge.done { background: rgba(16,185,129,.2); color: var(--green); }
+  .bot-badge.running { background: rgba(59,130,246,.2); color: var(--accent); }
+
+  /* ── ACTIONS ── */
+  .action-btn {
+    width: 100%; border: none; border-radius: 12px; padding: 13px; font-size: 14px;
+    font-weight: 600; cursor: pointer; margin-bottom: 8px; transition: opacity .15s;
+  }
+  .action-btn:active { opacity: .8; }
+  .action-btn.danger { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+  .action-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .action-btn.secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+
+  /* ── BALANCE MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 400;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--bg2); border-radius: 20px 20px 0 0; padding: 20px 16px 36px;
+    width: 100%; border-top: 1px solid var(--border);
+  }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .modal-input {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; font-size: 15px; color: var(--text); outline: none; margin-bottom: 12px;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-row { display: flex; gap: 8px; }
+  .modal-row .action-btn { margin-bottom: 0; }
+  textarea.modal-input { min-height: 100px; resize: none; font-family: inherit; }
+
+  /* ── BROADCAST ── */
+  .preview-box {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; font-size: 13px; color: var(--text); min-height: 60px; margin-bottom: 10px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+
+  /* ── TX ITEM ── */
+  .tx-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .tx-item:last-child { border-bottom: none; }
+  .tx-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .tx-icon.deposit { background: rgba(16,185,129,.15); }
+  .tx-icon.withdraw { background: rgba(239,68,68,.15); }
+  .tx-icon.bot_start { background: rgba(59,130,246,.15); }
+  .tx-icon.bot_claim { background: rgba(99,102,241,.15); }
+  .tx-icon.referral { background: rgba(245,158,11,.15); }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-type { font-size: 13px; font-weight: 500; color: var(--text); }
+  .tx-date { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .tx-amount { font-size: 14px; font-weight: 700; }
+  .tx-amount.pos { color: var(--green); }
+  .tx-amount.neg { color: var(--red); }
+
+  /* ── EMPTY ── */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 10px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── PILL TABS ── */
+  .pill-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; }
+  .pill-tabs::-webkit-scrollbar { display: none; }
+  .pill { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ── SPINNER ── */
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 30px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── CONFIRM DIALOG ── */
+  .confirm-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 500;
+    align-items: center; justify-content: center;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 24px; width: min(320px, 90vw); text-align: center;
+  }
+  .confirm-icon { font-size: 40px; margin-bottom: 12px; }
+  .confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .confirm-text { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .confirm-btns { display: flex; gap: 8px; }
+  .confirm-btns button { flex: 1; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-cancel { background: var(--bg3); color: var(--text); border: 1px solid var(--border) !important; }
+  .btn-ok { background: var(--red); color: #fff; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 18px; font-size: 13px; color: var(--text); z-index: 600;
+    opacity: 0; transition: all .25s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); margin: 14px 0 8px; }
+  .ref-item { padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+  .ref-item:last-child { border-bottom: none; }
+  .ref-name { font-size: 13px; color: var(--text); }
+  .ref-date { font-size: 11px; color: var(--muted); }
+
+  .requests-tab .req-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px; margin-bottom: 8px;
+  }
+  .req-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .req-type { font-size: 12px; font-weight: 600; }
+  .req-status { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+  .req-status.pending { background: rgba(245,158,11,.2); color: var(--yellow); }
+  .req-status.approved { background: rgba(16,185,129,.2); color: var(--green); }
+  .req-status.rejected { background: rgba(239,68,68,.2); color: var(--red); }
+  .req-amount { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .req-user { font-size: 12px; color: var(--muted); }
+  .req-actions { display: flex; gap: 6px; margin-top: 10px; }
+  .req-btn {
+    flex: 1; border: none; border-radius: 10px; padding: 9px; font-size: 13px;
+    font-weight: 600; cursor: pointer;
+  }
+  .req-btn.approve { background: rgba(16,185,129,.15); color: var(--green); border: 1px solid rgba(16,185,129,.3); }
+  .req-btn.reject { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-icon">📊</div>
+      <h1>TradeTON</h1>
+      <p>Панель администратора</p>
+    </div>
+    <div class="login-field">
+      <label>Логин</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <label>Пароль</label>
+      <input type="password" id="loginPass" placeholder="••••••••">
+    </div>
+    <div class="login-err" id="loginErr">Неверный логин или пароль</div>
+    <button class="login-btn" onclick="doLogin()">Войти</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="header-title" id="pageTitle">Дашборд</div>
+      <div class="header-sub" id="pageSubtitle">TradeTON Admin</div>
+    </div>
+    <div class="header-right">
+      <div class="status-dot" id="statusDot"></div>
+      <button class="logout-btn" onclick="doLogout()">Выйти</button>
+    </div>
+  </div>
+
+  <div class="content" id="mainContent">
+    <!-- pages injected here -->
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchPage('dashboard')" id="nav-dashboard">
+      <span class="nav-icon">📊</span>
+      <span>Главная</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('users')" id="nav-users">
+      <span class="nav-icon">👥</span>
+      <span>Пользователи</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('requests')" id="nav-requests">
+      <span class="nav-icon">📋</span>
+      <span>Заявки</span>
+      <span class="badge" id="reqBadge" style="display:none"></span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('broadcast')" id="nav-broadcast">
+      <span class="nav-icon">📢</span>
+      <span>Рассылка</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('logs')" id="nav-logs">
+      <span class="nav-icon">🔍</span>
+      <span>Логи</span>
+    </button>
+  </nav>
+</div>
+
+<!-- USER DETAIL PANEL -->
+<div id="userDetail">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeUserDetail()">← Назад</button>
+    <div style="flex:1">
+      <div class="header-title" id="detailName">Пользователь</div>
+      <div class="header-sub" id="detailId"></div>
+    </div>
+  </div>
+  <div class="detail-body" id="detailBody">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- BALANCE MODAL -->
+<div class="modal-overlay" id="balanceModal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="balModalTitle">Изменить баланс</div>
+    <input class="modal-input" type="number" id="balAmount" placeholder="Сумма (положительная = +, отрицательная = -)">
+    <div class="modal-row">
+      <button class="action-btn secondary" style="flex:1;margin:0" onclick="closeBalModal()">Отмена</button>
+      <button class="action-btn primary" style="flex:1;margin:0" onclick="submitBalance()">Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- BROADCAST MODAL -->
+<div class="modal-overlay" id="broadcastModal">
+  <div class="modal-sheet">
+    <div class="modal-title">Рассылка</div>
+    <textarea class="modal-input" id="broadcastText" placeholder="Текст сообщения (HTML поддерживается)"></textarea>
+    <div class="preview-box" id="broadcastPreview">Здесь появится предпросмотр...</div>
+    <div class="modal-row">
+      <button class="action-btn secondary" style="flex:1;margin:0" onclick="document.getElementById('broadcastModal').classList.remove('open')">Отмена</button>
+      <button class="action-btn primary" style="flex:1;margin:0" onclick="sendBroadcast()">Отправить всем</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-title" id="confirmTitle">Вы уверены?</div>
+    <div class="confirm-text" id="confirmText"></div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">Отмена</button>
+      <button class="btn-ok" id="confirmOk">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG — поменяй под себя
+// ═══════════════════════════════════════════
+const API = 'https://tradeton-production-6d7e.up.railway.app';
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let currentPage = 'dashboard';
+let currentUser = null;
+let users = [];
+let errors5xx = [];
+let serverLogs = [];
+let pendingRequests = [];
+let dashStats = {};
+let broadcastTarget = 'all';
+
+// Логин/пароль берутся из формы — проверяет сервер по .env
+let _login = '';
+let _pass  = '';
+
+// ═══════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════
+async function doLogin() {
+  const u   = document.getElementById('loginUser').value.trim();
+  const p   = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  const btn = document.querySelector('.login-btn');
+  if (!u || !p) { err.textContent = 'Введите логин и пароль'; err.style.display = 'block'; return; }
+
+  btn.textContent = 'Проверяем…';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch(API + '/api/admin/stats', {
+      headers: { 'x-admin-key': `${u}:${p}` },
+    });
+    if (r.status === 401) {
+      err.textContent = 'Неверный логин или пароль';
+      err.style.display = 'block';
+      document.getElementById('loginPass').value = '';
+    } else if (!r.ok) {
+      err.textContent = 'Ошибка сервера: ' + r.status;
+      err.style.display = 'block';
+    } else {
+      _login = u;
+      _pass  = p;
+      err.style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      init();
+    }
+  } catch(e) {
+    err.textContent = 'Нет связи с сервером';
+    err.style.display = 'block';
+  }
+
+  btn.textContent = 'Войти';
+  btn.disabled = false;
+}
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() {
+  _login = '';
+  _pass  = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ═══════════════════════════════════════════
+//  API HELPER
+// ═══════════════════════════════════════════
+async function api(path, opts = {}) {
+  try {
+    const r = await fetch(API + path, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': `${_login}:${_pass}`,
+        ...opts.headers,
+      },
+      ...opts,
+    });
+    if (!r.ok) {
+      const txt = await r.text();
+      if (r.status >= 500) {
+        logError(r.status, path, txt);
+      }
+      throw new Error(`${r.status}: ${txt}`);
+    }
+    return await r.json();
+  } catch (e) {
+    if (e.message && e.message.match(/^5\d\d/)) {
+      logError(parseInt(e.message), path, e.message);
+    }
+    throw e;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  ERROR TRACKING
+// ═══════════════════════════════════════════
+function logError(code, path, msg) {
+  errors5xx.unshift({ code, path, msg, time: new Date() });
+  if (errors5xx.length > 100) errors5xx.pop();
+  if (currentPage === 'logs') renderPage();
+}
+
+// ═══════════════════════════════════════════
+//  LOGS  (simulated from API health + errors)
+// ═══════════════════════════════════════════
+function addLog(level, text) {
+  serverLogs.unshift({ level, text, time: new Date() });
+  if (serverLogs.length > 200) serverLogs.pop();
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+async function init() {
+  switchPage('dashboard');
+  setInterval(refreshRequests, 30000);
+}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+function switchPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + page).classList.add('active');
+
+  const titles = {
+    dashboard: ['Дашборд', 'Статистика проекта'],
+    users:     ['Пользователи', 'Поиск и управление'],
+    requests:  ['Заявки', 'Депозиты и выводы'],
+    broadcast: ['Рассылка', 'Сообщения всем'],
+    logs:      ['Логи', '5xx ошибки и события'],
+  };
+  document.getElementById('pageTitle').textContent = titles[page][0];
+  document.getElementById('pageSubtitle').textContent = titles[page][1];
+
+  renderPage();
+}
+
+function renderPage() {
+  const content = document.getElementById('mainContent');
+  switch(currentPage) {
+    case 'dashboard': renderDashboard(content); break;
+    case 'users':     renderUsers(content); break;
+    case 'requests':  renderRequests(content); break;
+    case 'broadcast': renderBroadcast(content); break;
+    case 'logs':      renderLogs(content); break;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════
+async function renderDashboard(el) {
+  el.innerHTML = '<div class="spinner"></div>';
+  try {
+    // Fetch users for stats
+    const data = await api('/api/admin/stats');
+    dashStats = data;
+    addLog('INFO', 'Dashboard stats loaded');
+  } catch(e) {
+    // Build from users list
+    addLog('WARN', 'Admin stats endpoint missing, using users data');
+  }
+
+  // Load users for real stats
+  try {
+    const data = await api('/api/admin/users?limit=1000');
+    users = data.users || [];
+  } catch(e) {
+    users = [];
+  }
+
+  const totalUsers = users.length;
+  const totalBalance = users.reduce((s, u) => s + (u.balance || 0), 0);
+  const totalEarned = users.reduce((s, u) => s + (u.totalEarned || 0), 0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const newToday = users.filter(u => new Date(u.createdAt) >= today).length;
+
+  // health check
+  let health = '—';
+  try {
+    const h = await fetch(API + '/health');
+    const hd = await h.json();
+    health = hd.db === 'connected' ? '🟢 Онлайн' : '🔴 Нет БД';
+    document.getElementById('statusDot').style.background = hd.db === 'connected' ? 'var(--green)' : 'var(--red)';
+    addLog('INFO', `Health: ${hd.status}, DB: ${hd.db}`);
+  } catch(e) {
+    health = '🔴 Нет связи';
+    document.getElementById('statusDot').style.background = 'var(--red)';
+    addLog('ERR', 'Health check failed: ' + e.message);
+  }
+
+  await refreshRequests(false);
+
+  el.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Всего пользователей</div>
+        <div class="stat-value blue">${totalUsers}</div>
+        <div class="stat-sub">+${newToday} сегодня</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Баланс (сумма)</div>
+        <div class="stat-value green">${totalBalance.toFixed(2)}</div>
+        <div class="stat-sub">TON на счетах</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Всего заработано</div>
+        <div class="stat-value yellow">${totalEarned.toFixed(2)}</div>
+        <div class="stat-sub">TON выплачено</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ошибок 5xx</div>
+        <div class="stat-value ${errors5xx.length > 0 ? 'red' : ''}" style="${errors5xx.length>0?'color:var(--red)':''}">${errors5xx.length}</div>
+        <div class="stat-sub">За сессию</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Сервер</div>
+      <div class="info-row">
+        <span class="info-key">Статус</span>
+        <span class="info-val">${health}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">API</span>
+        <span class="info-val" style="font-size:11px;color:var(--muted)">${API}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Заявки (pending)</span>
+        <span class="info-val">${pendingRequests.length}</span>
+      </div>
+    </div>
+
+    ${pendingRequests.length > 0 ? `
+    <div class="card">
+      <div class="card-title">⚠️ Ожидают обработки</div>
+      ${pendingRequests.slice(0,3).map(r => `
+        <div class="info-row">
+          <span class="info-key">${r.type==='deposit'?'💰 Пополнение':'📤 Вывод'} · ${(r.amount||0).toFixed(2)} TON</span>
+          <span class="info-val" style="color:var(--yellow)">Pending</span>
+        </div>
+      `).join('')}
+      ${pendingRequests.length > 3 ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">+${pendingRequests.length-3} ещё…</div>` : ''}
+    </div>` : ''}
+
+    ${errors5xx.length > 0 ? `
+    <div class="card">
+      <div class="card-title">Последние ошибки</div>
+      ${errors5xx.slice(0,3).map(e => `
+        <div class="error-item">
+          <div class="error-code">HTTP ${e.code}</div>
+          <div class="error-msg">${e.path}</div>
+          <div class="error-time">${fmtTime(e.time)}</div>
+        </div>
+      `).join('')}
+    </div>` : ''}
+  `;
+}
+
+// ═══════════════════════════════════════════
+//  USERS
+// ═══════════════════════════════════════════
+let userSearch = '';
+
+async function renderUsers(el) {
+  el.innerHTML = `
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Имя, username или Telegram ID…" 
+        value="${userSearch}" oninput="onUserSearch(this.value)">
+    </div>
+    <div id="userListContent"><div class="spinner"></div></div>
+  `;
+  await loadUsers();
+}
+
+function onUserSearch(v) {
+  userSearch = v;
+  renderUserList();
+}
+
+async function loadUsers() {
+  try {
+    const data = await api('/api/admin/users?limit=500');
+    users = data.users || [];
+    addLog('INFO', `Loaded ${users.length} users`);
+  } catch(e) {
+    addLog('ERR', 'Load users: ' + e.message);
+    users = [];
+  }
+  renderUserList();
+}
+
+function renderUserList() {
+  const el = document.getElementById('userListContent');
+  if (!el) return;
+  const q = userSearch.toLowerCase();
+  const filtered = q
+    ? users.filter(u =>
+        (u.firstName||'').toLowerCase().includes(q) ||
+        (u.username||'').toLowerCase().includes(q) ||
+        String(u.telegramId).includes(q)
+      )
+    : users;
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Пользователи не найдены</p></div>';
+    return;
+  }
+  el.innerHTML = filtered.map(u => `
+    <div class="user-list-item" onclick="openUserDetail('${u._id}')">
+      <div class="user-list-top">
+        <div class="user-avatar">${(u.firstName||'?')[0].toUpperCase()}</div>
+        <div class="user-info">
+          <div class="user-name">${u.firstName || 'Без имени'}${u.username ? ` @${u.username}` : ''}</div>
+          <div class="user-id">ID: ${u.telegramId} · ${timeAgo(u.lastSeen)}</div>
+        </div>
+        <div class="user-balance">${(u.balance||0).toFixed(2)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+//  USER DETAIL
+// ═══════════════════════════════════════════
+async function openUserDetail(userId) {
+  currentUser = users.find(u => u._id === userId) || { _id: userId };
+  document.getElementById('detailName').textContent = currentUser.firstName || 'Пользователь';
+  document.getElementById('detailId').textContent = 'TG: ' + (currentUser.telegramId || '—');
+  document.getElementById('detailBody').innerHTML = '<div class="spinner"></div>';
+  document.getElementById('userDetail').classList.add('open');
+
+  try {
+    const data = await api(`/api/admin/users/${userId}`);
+    currentUser = data.user || currentUser;
+    const bots = data.bots || [];
+    const txs = data.transactions || [];
+    const refs = data.referrals || [];
+
+    document.getElementById('detailName').textContent = currentUser.firstName || 'Без имени';
+    document.getElementById('detailId').textContent = 'TG: ' + currentUser.telegramId;
+
+    document.getElementById('detailBody').innerHTML = `
+      <!-- INFO -->
+      <div class="card">
+        <div class="card-title">Профиль</div>
+        <div class="info-row"><span class="info-key">Имя</span><span class="info-val">${currentUser.firstName||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Username</span><span class="info-val">${currentUser.username ? '@'+currentUser.username : '—'}</span></div>
+        <div class="info-row"><span class="info-key">Telegram ID</span><span class="info-val">${currentUser.telegramId}</span></div>
+        <div class="info-row"><span class="info-key">Реф. код</span><span class="info-val">${currentUser.referralCode||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Зарегистрирован</span><span class="info-val">${fmtDate(currentUser.createdAt)}</span></div>
+        <div class="info-row"><span class="info-key">Последний визит</span><span class="info-val">${timeAgo(currentUser.lastSeen)}</span></div>
+      </div>
+
+      <!-- BALANCE -->
+      <div class="card">
+        <div class="card-title">Баланс</div>
+        <div class="info-row"><span class="info-key">Текущий баланс</span><span class="info-val" style="color:var(--green);font-size:20px;font-weight:700">${(currentUser.balance||0).toFixed(4)} TON</span></div>
+        <div class="info-row"><span class="info-key">Всего заработано</span><span class="info-val">${(currentUser.totalEarned||0).toFixed(4)} TON</span></div>
+        <div class="info-row"><span class="info-key">Рефералов</span><span class="info-val">${refs.length}</span></div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="card">
+        <div class="card-title">Действия</div>
+        <button class="action-btn primary" onclick="openBalModal()">💰 Изменить баланс</button>
+        <button class="action-btn secondary" onclick="openBroadcastToUser()">📩 Сообщение пользователю</button>
+        <button class="action-btn danger" onclick="confirmDeleteUser()">🗑 Удалить пользователя</button>
+      </div>
+
+      <!-- BOTS -->
+      ${bots.length > 0 ? `
+      <div class="card">
+        <div class="card-title">Боты (${bots.length})</div>
+        ${bots.map(b => `
+          <div class="bot-item">
+            <div class="bot-item-name">
+              ${b.name} · ${b.pair}
+              <span class="bot-badge ${b.done ? 'done' : 'running'}">${b.done ? (b.claimed ? 'Выплачен' : 'Завершён') : 'Активен'}</span>
+            </div>
+            <div class="bot-item-meta">
+              ${b.tier.toUpperCase()} · ${b.days} д. · Цена: ${b.price} TON · Заработано: ${(b.earned||0).toFixed(4)} TON
+            </div>
+            <div class="bot-item-meta" style="margin-top:2px">
+              ${fmtDate(b.startedAt)} → ${fmtDate(b.endsAt)}
+            </div>
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      <!-- REFERRALS -->
+      ${refs.length > 0 ? `
+      <div class="card">
+        <div class="card-title">Рефералы (${refs.length})</div>
+        ${refs.map(r => `
+          <div class="ref-item">
+            <span class="ref-name">${r.name||'Трейдер'}</span>
+            <span class="ref-date">${fmtDate(r.joinedAt)}</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      <!-- TRANSACTIONS -->
+      ${txs.length > 0 ? `
+      <div class="card">
+        <div class="card-title">Транзакции (${txs.length})</div>
+        ${txs.slice(0, 20).map(tx => `
+          <div class="tx-item">
+            <div class="tx-icon ${tx.type}">${txIcon(tx.type)}</div>
+            <div class="tx-info">
+              <div class="tx-type">${txLabel(tx.type)}</div>
+              <div class="tx-date">${fmtDate(tx.createdAt)}</div>
+            </div>
+            <div class="tx-amount ${tx.amount >= 0 ? 'pos' : 'neg'}">${tx.amount > 0 ? '+' : ''}${(tx.amount||0).toFixed(4)}</div>
+          </div>
+        `).join('')}
+      </div>` : ''}
+
+      <!-- USER LOGS -->
+      <div class="card">
+        <div class="card-title">Логи пользователя</div>
+        <div id="userLogs">
+        ${serverLogs.filter(l => l.userId === currentUser.telegramId).length > 0
+          ? serverLogs.filter(l => l.userId === currentUser.telegramId).map(l => `
+            <div class="log-item">
+              <span class="log-level ${l.level}">${l.level}</span>
+              <span class="log-text">${l.text}</span>
+              <span class="log-time">${fmtTime(l.time)}</span>
+            </div>`).join('')
+          : '<div style="font-size:13px;color:var(--muted);padding:8px 0">Нет логов для этого пользователя</div>'
+        }
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('detailBody').innerHTML = `
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">⚠️</div>
+        <div style="color:var(--red);font-size:14px">Ошибка загрузки: ${e.message}</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Проверьте /api/admin/users/:id на сервере</div>
+      </div>
+      
+      <!-- Fallback: show what we have -->
+      <div class="card">
+        <div class="card-title">Из кэша</div>
+        <div class="info-row"><span class="info-key">Имя</span><span class="info-val">${currentUser.firstName||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Telegram ID</span><span class="info-val">${currentUser.telegramId||'—'}</span></div>
+        <div class="info-row"><span class="info-key">Баланс</span><span class="info-val">${(currentUser.balance||0).toFixed(4)} TON</span></div>
+        <div class="info-row"><span class="info-key">Последний визит</span><span class="info-val">${timeAgo(currentUser.lastSeen)}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Действия</div>
+        <button class="action-btn danger" onclick="confirmDeleteUser()">🗑 Удалить пользователя</button>
+      </div>
+    `;
+  }
+}
+
+function closeUserDetail() {
+  document.getElementById('userDetail').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════
+//  BALANCE CHANGE
+// ═══════════════════════════════════════════
+function openBalModal() {
+  document.getElementById('balAmount').value = '';
+  document.getElementById('balModalTitle').textContent = `Баланс: ${currentUser.firstName||''}`;
+  document.getElementById('balanceModal').classList.add('open');
+}
+function closeBalModal() {
+  document.getElementById('balanceModal').classList.remove('open');
+}
+
+async function submitBalance() {
+  const amt = parseFloat(document.getElementById('balAmount').value);
+  if (isNaN(amt)) { showToast('Введите сумму', 'error'); return; }
+  try {
+    await api(`/api/admin/users/${currentUser._id}/balance`, {
+      method: 'POST',
+      body: JSON.stringify({ delta: amt }),
+    });
+    closeBalModal();
+    showToast(`Баланс изменён: ${amt > 0 ? '+' : ''}${amt} TON`, 'success');
+    addLog('INFO', `Balance changed for ${currentUser.telegramId}: ${amt}`);
+    await openUserDetail(currentUser._id);
+  } catch(e) {
+    showToast('Ошибка: ' + e.message, 'error');
+    addLog('ERR', `Balance change failed: ${e.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  DELETE USER
+// ═══════════════════════════════════════════
+function confirmDeleteUser() {
+  showConfirm(
+    '🗑',
+    'Удалить пользователя?',
+    `${currentUser.firstName||'Пользователь'} (${currentUser.telegramId}) и все его данные будут удалены безвозвратно.`,
+    async () => {
+      try {
+        await api(`/api/admin/users/${currentUser._id}`, { method: 'DELETE' });
+        showToast('Пользователь удалён', 'success');
+        addLog('WARN', `User deleted: ${currentUser.telegramId}`);
+        closeUserDetail();
+        users = users.filter(u => u._id !== currentUser._id);
+        renderUserList();
+      } catch(e) {
+        showToast('Ошибка: ' + e.message, 'error');
+        addLog('ERR', `Delete user failed: ${e.message}`);
+      }
+    }
+  );
+}
+
+// ═══════════════════════════════════════════
+//  REQUESTS
+// ═══════════════════════════════════════════
+async function refreshRequests(updateBadge = true) {
+  try {
+    const data = await api('/api/admin/requests');
+    pendingRequests = (data.requests || []).filter(r => r.status === 'pending');
+    if (updateBadge) {
+      const badge = document.getElementById('reqBadge');
+      if (pendingRequests.length > 0) {
+        badge.textContent = pendingRequests.length;
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch(e) {
+    pendingRequests = [];
+  }
+}
+
+let reqFilter = 'pending';
+async function renderRequests(el) {
+  el.innerHTML = `
+    <div class="pill-tabs">
+      <div class="pill ${reqFilter==='pending'?'active':''}" onclick="setReqFilter('pending')">Ожидают</div>
+      <div class="pill ${reqFilter==='all'?'active':''}" onclick="setReqFilter('all')">Все</div>
+      <div class="pill ${reqFilter==='deposit'?'active':''}" onclick="setReqFilter('deposit')">Пополнения</div>
+      <div class="pill ${reqFilter==='withdraw'?'active':''}" onclick="setReqFilter('withdraw')">Выводы</div>
+    </div>
+    <div id="reqList"><div class="spinner"></div></div>
+  `;
+  await loadRequests();
+}
+
+async function loadRequests() {
+  const el = document.getElementById('reqList');
+  if (!el) return;
+  try {
+    const data = await api('/api/admin/requests');
+    let reqs = data.requests || [];
+    pendingRequests = reqs.filter(r => r.status === 'pending');
+    const badge = document.getElementById('reqBadge');
+    if (pendingRequests.length > 0) { badge.textContent = pendingRequests.length; badge.style.display = 'block'; }
+    else badge.style.display = 'none';
+
+    if (reqFilter === 'pending') reqs = reqs.filter(r => r.status === 'pending');
+    else if (reqFilter === 'deposit') reqs = reqs.filter(r => r.type === 'deposit');
+    else if (reqFilter === 'withdraw') reqs = reqs.filter(r => r.type === 'withdraw');
+
+    if (!reqs.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Заявок нет</p></div>';
+      return;
+    }
+    el.innerHTML = reqs.map(r => `
+      <div class="req-item">
+        <div class="req-header">
+          <span class="req-type">${r.type==='deposit'?'💰 Пополнение':'📤 Вывод'}</span>
+          <span class="req-status ${r.status}">${reqStatusLabel(r.status)}</span>
+        </div>
+        <div class="req-amount">${(r.amount||0).toFixed(2)} TON</div>
+        <div class="req-user">${r.userName||''} · ${fmtDate(r.createdAt)}</div>
+        ${r.toAddress ? `<div class="req-user" style="margin-top:2px;word-break:break-all">📍 ${r.toAddress}</div>` : ''}
+        ${r.status === 'pending' ? `
+        <div class="req-actions">
+          <button class="req-btn approve" onclick="handleReq('${r._id}', 'approve')">✅ Принять</button>
+          <button class="req-btn reject" onclick="handleReq('${r._id}', 'reject')">❌ Отклонить</button>
+        </div>` : ''}
+      </div>
+    `).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="card"><div style="color:var(--muted);font-size:13px">Ошибка загрузки заявок.<br>Нужен /api/admin/requests на сервере.</div></div>`;
+    addLog('ERR', 'Load requests: ' + e.message);
+  }
+}
+
+function setReqFilter(f) { reqFilter = f; renderRequests(document.getElementById('mainContent')); }
+
+async function handleReq(id, action) {
+  try {
+    await api(`/api/admin/requests/${id}/${action}`, { method: 'POST' });
+    showToast(action === 'approve' ? '✅ Заявка принята' : '❌ Заявка отклонена', action === 'approve' ? 'success' : 'error');
+    addLog('INFO', `Request ${id} ${action}d`);
+    await loadRequests();
+  } catch(e) {
+    showToast('Ошибка: ' + e.message, 'error');
+    addLog('ERR', `Request action failed: ${e.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  BROADCAST
+// ═══════════════════════════════════════════
+function renderBroadcast(el) {
+  broadcastTarget = 'all';
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-title">Получатели</div>
+      <div class="pill-tabs" style="margin-bottom:0">
+        <div class="pill active" onclick="setBroadcastTarget('all', this)">Все пользователи</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Сообщение (HTML)</div>
+      <textarea class="modal-input" id="bcText" placeholder="<b>Текст</b> сообщения…" oninput="updateBcPreview()" style="width:100%;background:var(--bg2)"></textarea>
+      <div class="card-title" style="margin-top:8px">Предпросмотр</div>
+      <div class="preview-box" id="bcPreview">Здесь появится предпросмотр…</div>
+      <button class="action-btn primary" onclick="confirmBroadcast()">📢 Отправить всем</button>
+    </div>
+    <div class="card">
+      <div class="card-title">История рассылок</div>
+      <div id="bcHistory" style="font-size:13px;color:var(--muted)">Нет данных</div>
+    </div>
+  `;
+}
+
+function setBroadcastTarget(t, el) {
+  broadcastTarget = t;
+  document.querySelectorAll('.pill-tabs .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateBcPreview() {
+  const text = document.getElementById('bcText').value;
+  const preview = document.getElementById('bcPreview');
+  preview.innerHTML = text || '<span style="color:var(--muted)">Здесь появится предпросмотр…</span>';
+}
+
+function confirmBroadcast() {
+  const text = document.getElementById('bcText').value.trim();
+  if (!text) { showToast('Введите текст', 'error'); return; }
+  showConfirm('📢', 'Отправить рассылку?', `Сообщение будет отправлено ${broadcastTarget === 'all' ? 'всем пользователям' : 'выбранным пользователям'}.`, sendBroadcast);
+}
+
+async function sendBroadcast() {
+  const text = document.getElementById('bcText')?.value?.trim();
+  if (!text) return;
+  try {
+    const data = await api('/api/admin/broadcast', {
+      method: 'POST',
+      body: JSON.stringify({ text, target: broadcastTarget }),
+    });
+    showToast(`Отправлено: ${data.sent||'?'} пользователей`, 'success');
+    addLog('INFO', `Broadcast sent to ${data.sent||'?'} users`);
+    document.getElementById('bcText').value = '';
+    document.getElementById('bcPreview').innerHTML = 'Здесь появится предпросмотр…';
+    const hist = document.getElementById('bcHistory');
+    if (hist) hist.innerHTML = `<div class="info-row"><span class="info-key">Только что</span><span class="info-val">${data.sent||'?'} получателей</span></div>`;
+  } catch(e) {
+    showToast('Ошибка: ' + e.message, 'error');
+    addLog('ERR', 'Broadcast failed: ' + e.message);
+  }
+}
+
+function openBroadcastToUser() {
+  if (!currentUser) return;
+  broadcastTarget = currentUser._id;
+  switchPage('broadcast');
+  setTimeout(() => {
+    const ta = document.getElementById('bcText');
+    if (ta) ta.focus();
+    showToast(`Получатель: ${currentUser.firstName||'пользователь'}`, 'success');
+  }, 100);
+}
+
+// ═══════════════════════════════════════════
+//  LOGS
+// ═══════════════════════════════════════════
+let logFilter = 'all';
+function renderLogs(el) {
+  // Also show 5xx errors prominently
+  el.innerHTML = `
+    <div class="pill-tabs">
+      <div class="pill ${logFilter==='all'?'active':''}" onclick="setLogFilter('all')">Все</div>
+      <div class="pill ${logFilter==='ERR'?'active':''}" onclick="setLogFilter('ERR')">Ошибки</div>
+      <div class="pill ${logFilter==='5xx'?'active':''}" onclick="setLogFilter('5xx')">5xx HTTP</div>
+      <div class="pill ${logFilter==='WARN'?'active':''}" onclick="setLogFilter('WARN')">Предупреждения</div>
+    </div>
+
+    ${logFilter === '5xx' || logFilter === 'ERR' ? `
+    ${errors5xx.length > 0 ? errors5xx.map(e => `
+      <div class="error-item">
+        <div class="error-code">HTTP ${e.code} — ${e.path}</div>
+        <div class="error-msg">${e.msg || '—'}</div>
+        <div class="error-time">${fmtTime(e.time)}</div>
+      </div>
+    `).join('') : '<div class="empty-state"><div class="empty-icon">✅</div><p>5xx ошибок нет</p></div>'}
+    ` : ''}
+
+    ${logFilter !== '5xx' ? `
+    <div class="card">
+      <div class="card-title">Системные логи</div>
+      ${filterLogs().length > 0
+        ? filterLogs().map(l => `
+          <div class="log-item">
+            <span class="log-level ${l.level}">${l.level}</span>
+            <span class="log-text">${l.text}</span>
+            <span class="log-time">${fmtTime(l.time)}</span>
+          </div>`).join('')
+        : '<div class="empty-state" style="padding:20px 0"><p>Нет записей</p></div>'
+      }
+    </div>` : ''}
+
+    <button class="action-btn secondary" style="margin-top:4px" onclick="clearLogs()">🗑 Очистить логи</button>
+  `;
+}
+
+function filterLogs() {
+  if (logFilter === 'all') return serverLogs;
+  if (logFilter === '5xx') return [];
+  return serverLogs.filter(l => l.level === logFilter);
+}
+
+function setLogFilter(f) { logFilter = f; renderLogs(document.getElementById('mainContent')); }
+function clearLogs() { serverLogs = []; errors5xx = []; showToast('Логи очищены', 'success'); renderPage(); }
+
+// ═══════════════════════════════════════════
+//  CONFIRM DIALOG
+// ═══════════════════════════════════════════
+let confirmCallback = null;
+function showConfirm(icon, title, text, cb) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmText').textContent = text;
+  confirmCallback = cb;
+  document.getElementById('confirmOk').onclick = () => { closeConfirm(); cb(); };
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); confirmCallback = null; }
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+function fmtTime(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+function timeAgo(d) {
+  if (!d) return '—';
+  const s = Math.floor((Date.now() - new Date(d)) / 1000);
+  if (s < 60) return 'только что';
+  if (s < 3600) return Math.floor(s/60) + ' мин. назад';
+  if (s < 86400) return Math.floor(s/3600) + ' ч. назад';
+  return Math.floor(s/86400) + ' дн. назад';
+}
+function txIcon(type) {
+  return { deposit:'💰', withdraw:'📤', bot_start:'🤖', bot_claim:'✅', referral:'👥' }[type] || '•';
+}
+function txLabel(type) {
+  return { deposit:'Пополнение', withdraw:'Вывод', bot_start:'Запуск бота', bot_claim:'Получение дохода', referral:'Реферальный бонус' }[type] || type;
+}
+function reqStatusLabel(s) {
+  return { pending:'Ожидает', approved:'Принято', rejected:'Отклонено' }[s] || s;
+}
+</script>
+</body>
+</html>
