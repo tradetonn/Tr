@@ -334,6 +334,7 @@ async function notifyAdmin(request, user) {
 }
 
 // Webhook
+// Webhook
 app.post('/webhook', async (req, res) => {
   res.sendStatus(200);
   try {
@@ -352,19 +353,21 @@ app.post('/webhook', async (req, res) => {
 
       const text =
         `👋 Привет, <b>${name}</b>!\n\n` +
-        `⚡ <b>TradeEton</b> — торговые боты на TON.\n\n` +
+        `⚡ <b>TradeTON</b> — торговые боты на TON.\n\n` +
         `🤖 <b>Как работает:</b>\n` +
         `• Запускаешь бота — он торгует за тебя\n` +
-        `• Зарабатываешь <b>3–10%</b> сверх вложенного\n` +
+        `• Зарабатываешь <b>3–47%</b> сверх вложенного\n` +
         `• Депозит + доход возвращаются в конце срока\n\n` +
         `👥 <b>Рефералы:</b> получай <b>5%</b> от дохода каждого друга\n\n` +
-        `💎 Минимальный вход: <b>29 TON</b>`;
 
-      await tgSend(chatId, text, { reply_markup: { inline_keyboard: [[
-        { text: '🚀 Открыть TradeEton', web_app: { url: FRONTEND_URL } },
-      ],[
-        { text: '📖 Как пополнить?', callback_data: 'how_deposit' },
-      ]]}});
+      await tgSend(chatId, text, { reply_markup: { inline_keyboard: [
+        [
+          { text: '🚀 Открыть TradeTON', web_app: { url: FRONTEND_URL } }
+        ],
+        [
+          { text: '📞 Поддержка', url: 'https://t.me/Tradeesupport' }
+        ]
+      ]}});
       return;
     }
 
