@@ -334,7 +334,6 @@ async function notifyAdmin(request, user) {
 }
 
 // Webhook
-// Webhook
 app.post('/webhook', async (req, res) => {
   res.sendStatus(200);
   try {
@@ -359,6 +358,7 @@ app.post('/webhook', async (req, res) => {
         `• Зарабатываешь <b>3–47%</b> сверх вложенного\n` +
         `• Депозит + доход возвращаются в конце срока\n\n` +
         `👥 <b>Рефералы:</b> получай <b>5%</b> от дохода каждого друга\n\n` +
+        `💎 Минимальный вход: <b>29 TON</b>`;
 
       await tgSend(chatId, text, { reply_markup: { inline_keyboard: [
         [
@@ -366,6 +366,9 @@ app.post('/webhook', async (req, res) => {
         ],
         [
           { text: '📞 Поддержка', url: 'https://t.me/Tradeesupport' }
+        ],
+        [
+          { text: '💰 Как мы зарабатываем', callback_data: 'how_we_earn' }
         ]
       ]}});
       return;
@@ -378,6 +381,26 @@ app.post('/webhook', async (req, res) => {
       const origTxt = cb.message?.text || '';
       await bot.answerCallbackQuery(cb.id).catch(() => {});
 
+      // Новая кнопка "Как мы зарабатываем"
+      if (cb.data === 'how_we_earn') {
+        const earnText =
+          `📊 <b>Экономика TradeTON</b>\n\n` +
+          `Бот зарабатывает на бирже, допустим, <b>+8%</b> за 7 дней.\n\n` +
+          `• В приложении вы видите, например, <b>+5%</b> → это <b>ваша гарантия</b>\n` +
+          `• Оставшиеся <b>3%</b> — <b>доход платформы</b>\n\n` +
+          `<b>На что идут эти 3%?</b>\n` +
+          `🤖 Разработка и улучшение ботов\n` +
+          `🖥 Аренда серверов и API\n` +
+          `👥 Реферальные выплаты (5% вам!)\n` +
+          `🛡 Резерв для гарантий выплат\n\n` +
+          `<b>Почему это честно?</b>\n` +
+          `✅ Вы получаете ровно столько, сколько обещано\n` +
+          `✅ Если бот заработал меньше — <b>убыток на себе несём мы</b>`;
+
+        await tgSend(chatId, earnText);
+        return;
+      }
+
       if (cb.data === 'how_deposit') {
         await tgSend(chatId,
           `💰 <b>Как пополнить баланс:</b>\n\n` +
@@ -387,7 +410,7 @@ app.post('/webhook', async (req, res) => {
           `4. Отправь TON и нажми "Отправить заявку"\n\n` +
           `⏱ Зачисление после подтверждения администратором`,
           { reply_markup: { inline_keyboard: [[
-            { text: '🚀 Открыть TradeEton', web_app: { url: FRONTEND_URL } },
+            { text: '🚀 Открыть TradeTON', web_app: { url: FRONTEND_URL } },
           ]]}}
         );
         return;
