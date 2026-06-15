@@ -141,7 +141,7 @@ async function bootApp() {
     window._userInit  = (u.firstName || 'T')[0].toUpperCase();
 
     window._telegramId = u.telegramId;
-    window._refLink    = u.referralLink || `https://t.me/TradeTonnBot?start=${u.referralCode}`;
+window._refLink    = u.referralLink || `https://t.me/Tradeetonbot?start=${u.referralCode}`;
 
     const avatarEl = document.getElementById('avatarEl');
     if (avatarEl) avatarEl.textContent = window._userInit;
@@ -749,11 +749,11 @@ async function loadReferrals(){
     }
     
     if(earnedEl) earnedEl.textContent = Number(data.totalEarned).toFixed(4)+' TON';
-    if(data.referralCode) {
-      window._refLink = `https://t.me/TradeTonnBot?start=${data.referralCode}`;
-      const rl = document.getElementById('refLink');
-      if(rl) rl.textContent = window._refLink;
-    }
+if(data.referralCode) {
+  window._refLink = `https://t.me/Tradeetonbot?start=${data.referralCode}`;
+  const rl = document.getElementById('refLink');
+  if(rl) rl.textContent = window._refLink;
+}
     if(listEl){
       if (data.referrals.length) {
         listEl.innerHTML = data.referrals.map(r => {
