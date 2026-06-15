@@ -384,30 +384,35 @@
     <!-- pages injected here -->
   </div>
 
-  <nav class="nav">
-    <button class="nav-btn active" onclick="switchPage('dashboard')" id="nav-dashboard">
-      <span class="nav-icon">📊</span>
-      <span>Главная</span>
-    </button>
-    <button class="nav-btn" onclick="switchPage('users')" id="nav-users">
-      <span class="nav-icon">👥</span>
-      <span>Пользователи</span>
-    </button>
-    <button class="nav-btn" onclick="switchPage('requests')" id="nav-requests">
-      <span class="nav-icon">📋</span>
-      <span>Заявки</span>
-      <span class="badge" id="reqBadge" style="display:none"></span>
-    </button>
-    <button class="nav-btn" onclick="switchPage('broadcast')" id="nav-broadcast">
-      <span class="nav-icon">📢</span>
-      <span>Рассылка</span>
-    </button>
-    <button class="nav-btn" onclick="switchPage('logs')" id="nav-logs">
-      <span class="nav-icon">🔍</span>
-      <span>Логи</span>
-    </button>
-  </nav>
-</div>
+<nav class="nav">
+  <button class="nav-btn active" onclick="switchPage('dashboard')" id="nav-dashboard">
+    <span class="nav-icon">📊</span>
+    <span>Главная</span>
+  </button>
+  <button class="nav-btn" onclick="switchPage('users')" id="nav-users">
+    <span class="nav-icon">👥</span>
+    <span>Пользователи</span>
+  </button>
+  <button class="nav-btn" onclick="switchPage('requests')" id="nav-requests">
+    <span class="nav-icon">📋</span>
+    <span>Заявки</span>
+    <span class="badge" id="reqBadge" style="display:none"></span>
+  </button>
+  <button class="nav-btn" onclick="switchPage('broadcast')" id="nav-broadcast">
+    <span class="nav-icon">📢</span>
+    <span>Рассылка</span>
+  </button>
+  <!-- 👇 НОВАЯ КНОПКА ТУТ 👇 -->
+  <button class="nav-btn" onclick="switchPage('promos')" id="nav-promos">
+    <span class="nav-icon">🎁</span>
+    <span>Промокоды</span>
+  </button>
+  <!-- 👆 НОВАЯ КНОПКА ТУТ 👆 -->
+  <button class="nav-btn" onclick="switchPage('logs')" id="nav-logs">
+    <span class="nav-icon">🔍</span>
+    <span>Логи</span>
+  </button>
+</nav>
 
 <!-- USER DETAIL PANEL -->
 <div id="userDetail">
@@ -601,12 +606,14 @@ function switchPage(page) {
   document.getElementById('nav-' + page).classList.add('active');
 
   const titles = {
-    dashboard: ['Дашборд', 'Статистика проекта'],
-    users:     ['Пользователи', 'Поиск и управление'],
-    requests:  ['Заявки', 'Депозиты и выводы'],
-    broadcast: ['Рассылка', 'Сообщения всем'],
-    logs:      ['Логи', '5xx ошибки и события'],
-  };
+  dashboard: ['Дашборд', 'Статистика проекта'],
+  users:     ['Пользователи', 'Поиск и управление'],
+  requests:  ['Заявки', 'Депозиты и выводы'],
+  broadcast: ['Рассылка', 'Сообщения всем'],
+  promos:    ['Промокоды', 'Управление промокодами'],  // 👈 ЭТУ СТРОКУ
+  logs:      ['Логи', '5xx ошибки и события'],
+};
+
   document.getElementById('pageTitle').textContent = titles[page][0];
   document.getElementById('pageSubtitle').textContent = titles[page][1];
 
@@ -620,6 +627,7 @@ function renderPage() {
     case 'users':     renderUsers(content); break;
     case 'requests':  renderRequests(content); break;
     case 'broadcast': renderBroadcast(content); break;
+    case 'promos':    renderPromos(content); break;  // 👈 ЭТУ СТРОКУ
     case 'logs':      renderLogs(content); break;
   }
 }
@@ -1265,6 +1273,113 @@ function txLabel(type) {
 }
 function reqStatusLabel(s) {
   return { pending:'Ожидает', approved:'Принято', rejected:'Отклонено' }[s] || s;
+}
+
+async function renderPromos(el) {
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-title">➕ Создать промокод</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <input class="modal-input" id="promoCode" placeholder="Код (например: WELCOME100)" style="background:var(--bg2)">
+        <input class="modal-input" type="number" id="promoReward" placeholder="Награда в TON" step="0.1" style="background:var(--bg2)">
+        <input class="modal-input" type="number" id="promoMaxUses" placeholder="Макс. использований (1 = одноразовый)" value="1" style="background:var(--bg2)">
+        <input class="modal-input" type="number" id="promoExpireDays" placeholder="Срок действия (дней, 0 = без срока)" value="0" style="background:var(--bg2)">
+        <button class="action-btn primary" onclick="createPromo()">🎁 Создать промокод</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">📋 Список промокодов</div>
+      <div id="promosList"><div class="spinner"></div></div>
+    </div>
+  `;
+  await loadPromos();
+}
+
+async function loadPromos() {
+  const el = document.getElementById('promosList');
+  try {
+    const data = await api('/api/admin/promos');
+    const promos = data.promos || [];
+    
+    if (!promos.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎁</div><p>Промокодов пока нет</p></div>';
+      return;
+    }
+    
+    el.innerHTML = promos.map(p => `
+      <div class="user-list-item" style="margin-bottom:8px">
+        <div class="user-list-top">
+          <div class="user-avatar" style="background:${p.isActive ? 'var(--green)' : 'var(--muted)'}">🎁</div>
+          <div class="user-info">
+            <div class="user-name">${p.code}</div>
+            <div class="user-id">Награда: ${p.reward} TON · Использован: ${p.usedCount}/${p.maxUses === 0 ? '∞' : p.maxUses}</div>
+            <div class="user-id">Активировали: ${p.activatedCount || 0} чел. · ${p.expiresAt ? `До: ${fmtDate(p.expiresAt)}` : 'Без срока'}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="req-btn ${p.isActive ? 'approve' : 'reject'}" 
+              style="padding:5px 12px;font-size:11px" 
+              onclick="togglePromo('${p._id}', ${!p.isActive})">
+              ${p.isActive ? '🔴 Выключить' : '🟢 Включить'}
+            </button>
+            <button class="req-btn reject" style="padding:5px 12px;font-size:11px" 
+              onclick="deletePromo('${p._id}', '${p.code}')">
+              🗑 Удалить
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="error-item">Ошибка загрузки: ${e.message}</div>`;
+  }
+}
+
+async function createPromo() {
+  const code = document.getElementById('promoCode').value.trim().toUpperCase();
+  const reward = parseFloat(document.getElementById('promoReward').value);
+  const maxUses = parseInt(document.getElementById('promoMaxUses').value) || 1;
+  const expiresInDays = parseInt(document.getElementById('promoExpireDays').value) || 0;
+  
+  if (!code) { showToast('Введите код', 'error'); return; }
+  if (isNaN(reward) || reward <= 0) { showToast('Укажите награду', 'error'); return; }
+  
+  try {
+    await api('/api/admin/promos', {
+      method: 'POST',
+      body: JSON.stringify({ code, reward, maxUses, expiresInDays: expiresInDays > 0 ? expiresInDays : null }),
+    });
+    showToast(`Промокод ${code} создан`, 'success');
+    document.getElementById('promoCode').value = '';
+    document.getElementById('promoReward').value = '';
+    document.getElementById('promoMaxUses').value = '1';
+    document.getElementById('promoExpireDays').value = '0';
+    await loadPromos();
+  } catch(e) {
+    showToast('Ошибка: ' + e.message, 'error');
+  }
+}
+
+async function togglePromo(id, newState) {
+  try {
+    await api(`/api/admin/promos/${id}/toggle`, { method: 'POST' });
+    showToast('Статус обновлён', 'success');
+    await loadPromos();
+  } catch(e) {
+    showToast('Ошибка: ' + e.message, 'error');
+  }
+}
+
+async function deletePromo(id, code) {
+  showConfirm('🗑', 'Удалить промокод?', `Промокод "${code}" будет удалён безвозвратно.`, async () => {
+    try {
+      await api(`/api/admin/promos/${id}`, { method: 'DELETE' });
+      showToast('Промокод удалён', 'success');
+      await loadPromos();
+    } catch(e) {
+      showToast('Ошибка: ' + e.message, 'error');
+    }
+  });
 }
 </script>
 </body>

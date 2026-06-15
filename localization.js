@@ -42,6 +42,11 @@ const T = {
       days_14: '14 дней',
       days_30: '30 дней',
       
+            // Для ru:
+promo_title: 'Промокод',
+promo_activate: 'Активировать',
+promo_placeholder: 'Введите промокод',
+      
       // Задания
       tasks_title: 'Задания',
       tasks_sub: 'Выполняй задания — получай TON',
@@ -266,6 +271,12 @@ const T = {
       lang_select_title: 'Select Language',
       lang_welcome_title: 'Welcome!',
       lang_welcome_sub: 'Choose the app language',
+      
+
+// Для en:
+promo_title: 'Promo Code',
+promo_activate: 'Activate',
+promo_placeholder: 'Enter promo code',
       
       // Wallet
       wallet_balance: 'Wallet Balance',

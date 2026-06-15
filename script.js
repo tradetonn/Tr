@@ -856,3 +856,48 @@ window.addEventListener('langChanged', () => {
   ['basic','pro','elite'].forEach(updateYieldBadge);
   loadReferrals();
 });
+
+// ── PROMOCODE ────────────────────────────────────────────────
+async function activatePromo() {
+  const input = document.getElementById('promoInput');
+  const code = input?.value?.trim();
+  const msgDiv = document.getElementById('promoMessage');
+  
+  if (!code) {
+    if (msgDiv) msgDiv.innerHTML = '<span style="color:var(--red)">Введите промокод</span>';
+    return;
+  }
+  
+  if (msgDiv) msgDiv.innerHTML = '<span style="color:var(--text2)">Проверяем...</span>';
+  
+  try {
+    const data = await apiPost('/api/promo/activate', { code });
+    
+    balance = data.balance;
+    updateBal();
+    if (msgDiv) {
+      msgDiv.innerHTML = `<span style="color:var(--green)">✅ ${data.message || `+${data.reward} TON зачислено!`}</span>`;
+    }
+    input.value = '';
+    
+    apiGet('/api/transactions').then(d => renderTxList(d.transactions)).catch(()=>{});
+    
+    setTimeout(() => {
+      if (msgDiv && msgDiv.innerHTML.includes('✅')) {
+        msgDiv.innerHTML = '';
+      }
+    }, 5000);
+    
+  } catch (e) {
+    let errorMsg = e.message || 'Ошибка активации';
+    if (errorMsg.includes('404')) errorMsg = 'Промокод не найден';
+    if (errorMsg.includes('400') && e.message) errorMsg = e.message;
+    if (msgDiv) msgDiv.innerHTML = `<span style="color:var(--red)">❌ ${errorMsg}</span>`;
+    
+    setTimeout(() => {
+      if (msgDiv && msgDiv.innerHTML.includes('❌')) {
+        msgDiv.innerHTML = '';
+      }
+    }, 4000);
+  }
+}

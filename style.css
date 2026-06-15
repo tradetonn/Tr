@@ -431,3 +431,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 .splash-dot.lit{background:var(--accent2);}
 .toast.show{opacity:1;}
 .tx-status-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;letter-spacing:.2px;}
+
+/* ── PROMOCODE STYLES ── */
+#promoInput:focus {
+  border-color: var(--accent);
+}
+#promoMessage {
+  transition: opacity 0.2s;
+  min-height: 20px;
+}

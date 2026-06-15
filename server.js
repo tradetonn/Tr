@@ -18,7 +18,8 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
 // Временное хранилище реф.кодов: telegramId → referralCode
 const pendingReferrals = new Map();
-
+// ── PENDING PROMO ACTIVATION ──
+const pendingPromoActivations = new Map();
 // ═══════════════════════════════════════════════════════════════
 // MIDDLEWARE
 // ═══════════════════════════════════════════════════════════════
@@ -101,6 +102,24 @@ const TransactionSchema = new mongoose.Schema({
 TransactionSchema.index({ userId: 1, createdAt: -1 });
 
 const Transaction = mongoose.model('Transaction', TransactionSchema);
+
+// ── PromoCode ────────────────────────────────────────────────────────
+const PromoCodeSchema = new mongoose.Schema({
+  code:         { type: String, required: true, unique: true, uppercase: true, trim: true },
+  reward:       { type: Number, required: true, min: 0.1 },
+  maxUses:      { type: Number, default: 1 },
+  usedCount:    { type: Number, default: 0 },
+  expiresAt:    { type: Date, default: null },
+  isActive:     { type: Boolean, default: true },
+  createdBy:    { type: String, default: 'admin' },
+  createdAt:    { type: Date, default: Date.now },
+  activatedBy:  { type: Map, of: Date, default: new Map() },
+});
+
+PromoCodeSchema.index({ code: 1 }, { unique: true });
+PromoCodeSchema.index({ isActive: 1, expiresAt: 1 });
+
+const PromoCode = mongoose.model('PromoCode', PromoCodeSchema);
 
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -874,6 +893,166 @@ app.post('/api/admin/broadcast', adminAuth, async (req, res) => {
     console.log(`[admin] Broadcast: ${sent}/${targets.length}`);
     res.json({ ok: true, sent, total: targets.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// PROMOCODE ROUTES
+// ═══════════════════════════════════════════════════════════════
+
+app.post('/api/promo/activate', auth, async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ error: 'Введите промокод' });
+    }
+
+    const normalizedCode = code.trim().toUpperCase();
+    const userId = req.user._id.toString();
+    const userTelegramId = req.user.telegramId;
+
+    // Защита от флуда
+    const lastTry = pendingPromoActivations.get(userId);
+    if (lastTry && Date.now() - lastTry < 5000) {
+      return res.status(429).json({ error: 'Подождите несколько секунд' });
+    }
+    pendingPromoActivations.set(userId, Date.now());
+    setTimeout(() => pendingPromoActivations.delete(userId), 5000);
+
+    const promo = await PromoCode.findOne({ 
+      code: normalizedCode,
+      isActive: true,
+    });
+
+    if (!promo) {
+      return res.status(404).json({ error: 'Промокод не найден или неактивен' });
+    }
+
+    if (promo.expiresAt && new Date() > promo.expiresAt) {
+      await PromoCode.updateOne({ _id: promo._id }, { isActive: false });
+      return res.status(400).json({ error: 'Срок действия промокода истёк' });
+    }
+
+    if (promo.maxUses > 0 && promo.usedCount >= promo.maxUses) {
+      await PromoCode.updateOne({ _id: promo._id }, { isActive: false });
+      return res.status(400).json({ error: 'Промокод уже использован максимальное количество раз' });
+    }
+
+    if (promo.activatedBy && promo.activatedBy.has(userTelegramId.toString())) {
+      return res.status(400).json({ error: 'Вы уже активировали этот промокод' });
+    }
+
+    const reward = promo.reward;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $inc: { balance: reward } },
+      { new: true }
+    );
+
+    promo.usedCount += 1;
+    promo.activatedBy.set(userTelegramId.toString(), new Date());
+    await promo.save();
+
+    await Transaction.create({
+      userId: req.user._id,
+      type: 'deposit',
+      amount: reward,
+      status: 'done',
+      meta: { promoCode: normalizedCode, promoId: promo._id },
+    });
+
+    if (BOT_TOKEN) {
+      tgSend(req.user.telegramId, 
+        `🎁 <b>Промокод активирован!</b>\n\nКод: <code>${normalizedCode}</code>\nНаграда: <b>+${reward.toFixed(4)} TON</b>\n\n💰 Новый баланс: ${updatedUser.balance.toFixed(4)} TON`
+      );
+    }
+
+    console.log(`[promo] ${userTelegramId} activated ${normalizedCode} +${reward} TON`);
+
+    res.json({
+      success: true,
+      reward: reward,
+      balance: updatedUser.balance,
+      message: `Промокод активирован! +${reward.toFixed(4)} TON`
+    });
+
+  } catch (e) {
+    console.error('[POST /api/promo/activate]', e.message);
+    res.status(500).json({ error: 'Ошибка активации промокода' });
+  }
+});
+
+// ── ADMIN CRUD ──
+
+app.get('/api/admin/promos', adminAuth, async (req, res) => {
+  try {
+    const promos = await PromoCode.find().sort({ createdAt: -1 });
+    res.json({ promos: promos.map(p => ({
+      _id: p._id,
+      code: p.code,
+      reward: p.reward,
+      maxUses: p.maxUses,
+      usedCount: p.usedCount,
+      expiresAt: p.expiresAt,
+      isActive: p.isActive,
+      createdAt: p.createdAt,
+      activatedCount: p.activatedBy?.size || 0,
+    })) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/admin/promos', adminAuth, async (req, res) => {
+  try {
+    const { code, reward, maxUses, expiresInDays } = req.body;
+    
+    if (!code || !reward || reward <= 0) {
+      return res.status(400).json({ error: 'Неверные параметры' });
+    }
+
+    let expiresAt = null;
+    if (expiresInDays && expiresInDays > 0) {
+      expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+    }
+
+    const promo = await PromoCode.create({
+      code: code.toUpperCase(),
+      reward: parseFloat(reward),
+      maxUses: maxUses || 1,
+      expiresAt,
+      createdBy: 'admin',
+    });
+
+    res.json({ promo });
+  } catch (e) {
+    if (e.code === 11000) {
+      return res.status(400).json({ error: 'Промокод с таким именем уже существует' });
+    }
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/admin/promos/:id', adminAuth, async (req, res) => {
+  try {
+    const result = await PromoCode.findByIdAndDelete(req.params.id);
+    if (!result) return res.status(404).json({ error: 'Не найден' });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/admin/promos/:id/toggle', adminAuth, async (req, res) => {
+  try {
+    const promo = await PromoCode.findById(req.params.id);
+    if (!promo) return res.status(404).json({ error: 'Не найден' });
+    promo.isActive = !promo.isActive;
+    await promo.save();
+    res.json({ isActive: promo.isActive });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
