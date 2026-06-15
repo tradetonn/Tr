@@ -425,7 +425,7 @@ app.get('/api/me', auth, async (req, res) => {
         totalEarned:   req.user.totalEarned,
         referralCode:  req.user.referralCode,
         referralCount: refCount,
-        referralLink:  `https://t.me/${BOT_USERNAME}?start=${req.user.referralCode}`,
+        referralLink: `https://t.me/${BOT_USERNAME}?start=${req.user.referralCode}`,
       },
       bots:         bots.map(formatBot),
       transactions: txs.map(formatTx),
