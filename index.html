@@ -317,112 +317,113 @@
       <button onclick="openLangModal()" style="background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent2);border-radius:var(--r2);padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" data-i18n="lang_change">Изменить</button>
     </div>
 
-<div class="wallet-summary">
-  <div class="ws-item">
-    <div class="ws-lbl" data-i18n="wallet_available">Доступно</div>
-    <div class="ws-val green" id="wAvail">2 841.50 TON</div>
-  </div>
-  <div class="ws-div"></div>
-  <div class="ws-item">
-    <div class="ws-lbl" data-i18n="wallet_in_bots">В ботах</div>
-    <div class="ws-val" id="wInBots">0 TON</div>
-  </div>
-  <div class="ws-div"></div>
-  <div class="ws-item">
-    <div class="ws-lbl" data-i18n="wallet_monthly">Доход за месяц</div>
-    <div class="ws-val green" id="wMonthly">+0 TON</div>
-  </div>
-</div>
+    <div class="wallet-summary">
+      <div class="ws-item">
+        <div class="ws-lbl" data-i18n="wallet_available">Доступно</div>
+        <div class="ws-val green" id="wAvail">2 841.50 TON</div>
+      </div>
+      <div class="ws-div"></div>
+      <div class="ws-item">
+        <div class="ws-lbl" data-i18n="wallet_in_bots">В ботах</div>
+        <div class="ws-val" id="wInBots">0 TON</div>
+      </div>
+      <div class="ws-div"></div>
+      <div class="ws-item">
+        <div class="ws-lbl" data-i18n="wallet_monthly">Доход за месяц</div>
+        <div class="ws-val green" id="wMonthly">+0 TON</div>
+      </div>
+    </div>
 
-<!-- ⬇️⬇️⬇️ ВСТАВИТЬ СЮДА ⬇️⬇️⬇️ -->
-<div class="card" style="margin-bottom:10px;padding:14px">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-    <span style="font-size:18px">🎁</span>
-    <span style="font-size:14px;font-weight:700" data-i18n="promo_title">Промокод</span>
-  </div>
-  <div style="display:flex;gap:8px">
-    <input type="text" id="promoInput" placeholder="XXXX-XXXX" 
-      style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:var(--r2);padding:12px;font-size:14px;color:var(--text);outline:none;font-family:inherit">
-    <button onclick="activatePromo()" 
-      style="background:linear-gradient(135deg,#5B5FEE,#7B7FF8);border:none;border-radius:var(--r2);padding:0 20px;font-size:13px;font-weight:700;color:#fff;cursor:pointer">
-      <span data-i18n="promo_activate">Активировать</span>
-    </button>
-  </div>
-  <div id="promoMessage" style="font-size:11px;color:var(--text3);margin-top:8px"></div>
-</div>
-<!-- ⬆️⬆️⬆️ ДО СЮДА ⬆️⬆️⬆️ -->
-
-<div class="sec-title" data-i18n="wallet_history">История</div>
-<div class="wallet-tx-wrap" id="txList">
-  <div style="padding:24px;text-align:center;color:var(--text3);font-size:13px" data-i18n="wallet_no_tx">Транзакций пока нет</div>
-</div>
-
-<!-- MODAL: Deposit/Withdraw -->
-<div class="modal-overlay" id="walletModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeWalletModal()">✕</button>
-    <div class="modal-title" id="wModalTitle">Пополнить</div>
-
-    <div id="wDepositView">
-      <div class="wm-address-box">
-        <div class="wm-addr-lbl" data-i18n="deposit_addr_lbl">Ваш TON-адрес</div>
-        <div class="wm-addr-val" id="wDepositAddr">UQBx9k2mF...d4Kp</div>
-        <button class="wm-copy-btn" onclick="copyWalletAddr()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span data-i18n="deposit_copy_addr">Копировать</span>
+    <!-- БЛОК ПРОМОКОДА -->
+    <div class="card" style="margin-bottom:10px;padding:14px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-size:18px">🎁</span>
+        <span style="font-size:14px;font-weight:700" data-i18n="promo_title">Промокод</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input type="text" id="promoInput" placeholder="XXXX-XXXX" 
+          style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:var(--r2);padding:12px;font-size:14px;color:var(--text);outline:none;font-family:inherit">
+        <button onclick="activatePromo()" 
+          style="width:100%;background:linear-gradient(135deg,#5B5FEE,#7B7FF8);border:none;border-radius:var(--r2);padding:12px;font-size:13px;font-weight:700;color:#fff;cursor:pointer">
+          <span data-i18n="promo_activate">Активировать</span>
         </button>
       </div>
-      
-      <!-- Поле для MEMO -->
-      <div style="margin-bottom: 14px;">
-        <div class="wm-addr-lbl" data-i18n="deposit_memo_lbl">Ваш MEMO (Telegram ID)</div>
-        <div class="wm-address-box" style="border-color:var(--accent);background:var(--accent-dim);">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <div style="font-size:20px;font-weight:800;color:var(--accent2);letter-spacing:.5px;" id="userTelegramId">—</div>
-            <button class="wm-copy-btn" onclick="copyMemoId()" id="copyMemoBtn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span data-i18n="deposit_copy_memo">Копировать</span>
-            </button>
-          </div>
-        </div>
-        <div class="wm-hint" style="margin-top:6px;background:rgba(246,70,93,.08);border-color:rgba(246,70,93,.3);" data-i18n="deposit_memo_hint">
-          ⚠️ ОБЯЗАТЕЛЬНО укажите этот MEMO в комментарии к переводу! Без MEMO средства не будут зачислены.
-        </div>
-      </div>
-      
-      <div class="wm-hint" data-i18n="deposit_hint">Отправь TON на этот адрес — средства зачислятся после подтверждения администратором.</div>
-      <div class="wm-amount-row">
-        <div class="wm-lbl" data-i18n="deposit_amount_lbl">Сумма пополнения</div>
-        <div class="wm-input-wrap">
-          <input class="wm-input" type="number" id="depositAmt" placeholder="0.00" min="0.1" step="0.1">
-          <span class="wm-currency">TON</span>
-        </div>
-      </div>
-      <button class="confirm-btn" onclick="doDeposit()"><span style="display:inline-flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" ><path d="M12 2v20M2 12l10 10 10-10"/></svg> <span data-i18n="deposit_btn">Пополнить</span></span></button>
+      <div id="promoMessage" style="font-size:11px;color:var(--text3);margin-top:8px"></div>
     </div>
 
-    <div id="wWithdrawView" style="display:none">
-      <div class="wm-balance-hint"><span data-i18n="withdraw_avail_lbl">Доступно:</span> <span id="wDrawAvail" style="color:var(--green);font-weight:700">—</span></div>
-      <div class="wm-lbl" style="margin-bottom:6px" data-i18n="withdraw_amount">Сумма вывода</div>
-      <div class="wm-input-wrap" style="margin-bottom:10px">
-        <input class="wm-input" type="number" id="withdrawAmt" placeholder="0.00" min="0.1" step="0.1">
-        <span class="wm-currency">TON</span>
-      </div>
-      <div class="wm-lbl" style="margin-bottom:6px" data-i18n="withdraw_addr">TON-адрес получателя</div>
-      <input class="wm-input" id="withdrawAddr" placeholder="UQ..." style="width:100%;margin-bottom:10px;background:var(--card2);border:1px solid var(--border);border-radius:var(--r2);padding:13px 14px;font-size:14px;color:var(--text);font-family:inherit;outline:none">
-      <div class="row" style="border:none;padding:4px 0 10px">
-        <div class="row-lbl" data-i18n="withdraw_fee">Комиссия сети</div>
-        <div class="row-val" style="color:var(--text2)">~0.05 TON</div>
-      </div>
-      <div class="row" style="border:none;padding:0">
-        <div class="row-lbl" data-i18n="withdraw_receive">Получите</div>
-        <div class="row-val" id="wDrawGet" style="color:var(--green)">—</div>
-      </div>
-      <button class="confirm-btn" onclick="doWithdraw()" style="background:linear-gradient(135deg,#F6465D,#FF6B6B)"><span style="display:inline-flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" ><path d="M12 22V2M2 12l10-10 10 10"/></svg> <span data-i18n="withdraw_btn">Вывести</span></span></button>
+    <div class="sec-title" data-i18n="wallet_history">История</div>
+    <div class="wallet-tx-wrap" id="txList">
+      <div style="padding:24px;text-align:center;color:var(--text3);font-size:13px" data-i18n="wallet_no_tx">Транзакций пока нет</div>
     </div>
-  </div>
-</div>
+
+    <!-- MODAL: Deposit/Withdraw -->
+    <div class="modal-overlay" id="walletModal">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <button class="modal-close" onclick="closeWalletModal()">✕</button>
+        <div class="modal-title" id="wModalTitle">Пополнить</div>
+
+        <div id="wDepositView">
+          <div class="wm-address-box">
+            <div class="wm-addr-lbl" data-i18n="deposit_addr_lbl">Ваш TON-адрес</div>
+            <div class="wm-addr-val" id="wDepositAddr">UQBx9k2mF...d4Kp</div>
+            <button class="wm-copy-btn" onclick="copyWalletAddr()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span data-i18n="deposit_copy_addr">Копировать</span>
+            </button>
+          </div>
+          
+          <div style="margin-bottom: 14px;">
+            <div class="wm-addr-lbl" data-i18n="deposit_memo_lbl">Ваш MEMO (Telegram ID)</div>
+            <div class="wm-address-box" style="border-color:var(--accent);background:var(--accent-dim);">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="font-size:20px;font-weight:800;color:var(--accent2);letter-spacing:.5px;" id="userTelegramId">—</div>
+                <button class="wm-copy-btn" onclick="copyMemoId()" id="copyMemoBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span data-i18n="deposit_copy_memo">Копировать</span>
+                </button>
+              </div>
+            </div>
+            <div class="wm-hint" style="margin-top:6px;background:rgba(246,70,93,.08);border-color:rgba(246,70,93,.3);" data-i18n="deposit_memo_hint">
+              ⚠️ ОБЯЗАТЕЛЬНО укажите этот MEMO в комментарии к переводу! Без MEMO средства не будут зачислены.
+            </div>
+          </div>
+          
+          <div class="wm-hint" data-i18n="deposit_hint">Отправь TON на этот адрес — средства зачислятся после подтверждения администратором.</div>
+          <div class="wm-amount-row">
+            <div class="wm-lbl" data-i18n="deposit_amount_lbl">Сумма пополнения</div>
+            <div class="wm-input-wrap">
+              <input class="wm-input" type="number" id="depositAmt" placeholder="0.00" min="0.1" step="0.1">
+              <span class="wm-currency">TON</span>
+            </div>
+          </div>
+          <button class="confirm-btn" onclick="doDeposit()"><span style="display:inline-flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" ><path d="M12 2v20M2 12l10 10 10-10"/></svg> <span data-i18n="deposit_btn">Пополнить</span></span></button>
+        </div>
+
+        <div id="wWithdrawView" style="display:none">
+          <div class="wm-balance-hint"><span data-i18n="withdraw_avail_lbl">Доступно:</span> <span id="wDrawAvail" style="color:var(--green);font-weight:700">—</span></div>
+          <div class="wm-lbl" style="margin-bottom:6px" data-i18n="withdraw_amount">Сумма вывода</div>
+          <div class="wm-input-wrap" style="margin-bottom:10px">
+            <input class="wm-input" type="number" id="withdrawAmt" placeholder="0.00" min="0.1" step="0.1">
+            <span class="wm-currency">TON</span>
+          </div>
+          <div class="wm-lbl" style="margin-bottom:6px" data-i18n="withdraw_addr">TON-адрес получателя</div>
+          <input class="wm-input" id="withdrawAddr" placeholder="UQ..." style="width:100%;margin-bottom:10px;background:var(--card2);border:1px solid var(--border);border-radius:var(--r2);padding:13px 14px;font-size:14px;color:var(--text);font-family:inherit;outline:none">
+          <div class="row" style="border:none;padding:4px 0 10px">
+            <div class="row-lbl" data-i18n="withdraw_fee">Комиссия сети</div>
+            <div class="row-val" style="color:var(--text2)">~0.05 TON</div>
+          </div>
+          <div class="row" style="border:none;padding:0">
+            <div class="row-lbl" data-i18n="withdraw_receive">Получите</div>
+            <div class="row-val" id="wDrawGet" style="color:var(--green)">—</div>
+          </div>
+          <button class="confirm-btn" onclick="doWithdraw()" style="background:linear-gradient(135deg,#F6465D,#FF6B6B)"><span style="display:inline-flex;align-items:center;gap:7px"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" ><path d="M12 22V2M2 12l10-10 10 10"/></svg> <span data-i18n="withdraw_btn">Вывести</span></span></button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- закрытие page-wallet -->
+
+</div> <!-- закрытие pages -->
 
 <nav class="nav">
   <button class="nav-btn active" onclick="switchPage('trade')" id="nav-trade">
