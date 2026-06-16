@@ -225,7 +225,10 @@ async function auth(req, res, next) {
       const id = parseInt(h.slice(4));
       if (!id || id <= 0) return res.status(401).json({ error: 'Bad dev token' });
       let u = await User.findOne({ telegramId: id });
-      if (!u) { u = new User({ telegramId: id, firstName: 'Dev', balance: 1000 }); await u.save(); }
+      if (!u) { 
+        u = new User({ telegramId: id, firstName: 'Dev', balance: 1000 }); 
+        await u.save(); 
+      }
       req.user = u;
       return next();
     }
@@ -234,7 +237,7 @@ async function auth(req, res, next) {
     if (!h.startsWith('tma ')) return res.status(401).json({ error: 'Authorization required' });
 
     const tgUser = verifyTelegramData(h.slice(4), BOT_TOKEN);
-    if (!tgUser)  return res.status(401).json({ error: 'Invalid Telegram data' });
+    if (!tgUser) return res.status(401).json({ error: 'Invalid Telegram data' });
 
     let user = await User.findOne({ telegramId: tgUser.id });
     if (!user) {
@@ -245,6 +248,7 @@ async function auth(req, res, next) {
         pendingReferrals.delete(String(tgUser.id));
         console.log(`[ref] ${tgUser.id} referred by ${pendingRef} → ${referrer?.telegramId}`);
       }
+      
       user = new User({
         telegramId: tgUser.id,
         username:   tgUser.username   || '',
@@ -252,6 +256,21 @@ async function auth(req, res, next) {
         referredBy: referrer?._id || null,
       });
       await user.save();
+      
+      // ─── УВЕДОМЛЕНИЕ АДМИНУ ───────────────────────────────
+      if (ADMIN_CHAT_ID && BOT_TOKEN) {
+        const adminMsg = 
+          `🆕 <b>Новый пользователь!</b>\n\n` +
+          `👤 Имя: <b>${tgUser.first_name || 'Без имени'}</b>\n` +
+          `🆔 ID: <code>${tgUser.id}</code>\n` +
+          `${tgUser.username ? `🔹 Username: @${tgUser.username}\n` : ''}` +
+          `${referrer ? `🔗 Пришёл по ссылке от: <b>${referrer.firstName || 'пользователь'}</b>\n` : ''}` +
+          `📅 ${new Date().toLocaleString('ru-RU')}`;
+        
+        await tgSend(ADMIN_CHAT_ID, adminMsg);
+      }
+      // ─── КОНЕЦ УВЕДОМЛЕНИЯ ──────────────────────────────
+      
       if (referrer) {
         tgSend(referrer.telegramId,
           `👤 Ваш друг <b>${tgUser.first_name||'Пользователь'}</b> присоединился к TradeEton по вашей ссылке!\n` +
